@@ -1,22 +1,23 @@
-# 🧪 Playwright + Pytest E2E Automation Project
+# 🧪 Playwright and API Testing Project
 
-This project demonstrates end-to-end (E2E) test automation using **Python**, **Playwright**, and **Pytest**.
+This repository contains automated tests for both UI and API validation using Python, Playwright, Pytest, and Requests libraries.
 
-It covers real user scenarios on websites like [saucedemo.com](https://www.saucedemo.com) and [uniqlo.com](https://www.uniqlo.com/us/en/), including login, navigation, adding products to cart, and error handling.
+The project is structured to demonstrate best practices in test automation, including Page Object Model (POM) for UI tests and a complete set of CRUD operations for API tests.
 
 ---
 
 ## 🔧 Tech Stack
 
-- 🐍 Python 3.13+
-- 🎭 Playwright (sync API)
-- 🧪 Pytest
-- 📸 Automatic screenshots on failure
-- 📄 HTML reports via `pytest-html`
+- Python 3.13+
+- Playwright (synchronous API)
+- Pytest
+- Requests (for API testing)
+- Automatic screenshots on failure
+- HTML reports via `pytest-html`
 
 ---
 
-🤝 Author
+Author
 Roman Petrov
-QA Engineer | Passionate about test automation
-GitHub @rmpetrov
+
+GitHub: rmpetrov
