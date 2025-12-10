@@ -1,16 +1,26 @@
+from playwright.sync_api import Page, expect
+
+
 class LoginPage:
-    def __init__(self, page):
+    URL = "https://demo.applitools.com/"
+
+    def __init__(self, page: Page):
         self.page = page
-        self.username_input = "input[data-test='username']"
-        self.password_input = "input[data-test='password']"
-        self.login_button = "input[data-test='login-button']"
-        self.title = "span.title"
 
-    def goto(self):
-        self.page.goto("https://www.saucedemo.com/")
+    def open(self):
+        self.page.goto(self.URL)
 
-    def login(self, username, password):
-        self.page.fill(self.username_input, username)
-        self.page.fill(self.password_input, password)
-        self.page.click(self.login_button)
-        self.page.wait_for_selector(self.title)
+    def login(self, username: str, password: str, remember: bool = False):
+        # Поля логина/пароля
+        self.page.locator("#username").fill(username)
+        self.page.locator("#password").fill(password)
+
+        # Чекбокс "Remember Me" — через label, а не через id
+        if remember:
+            self.page.get_by_label("Remember Me").check()
+
+        # Кнопка логина
+        self.page.locator("#log-in").click()
+
+    def assert_on_page(self):
+        expect(self.page).to_have_url(self.URL)
