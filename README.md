@@ -4,7 +4,7 @@ This repository contains automated UI tests for the demo banking application
 👉 https://demo.applitools.com  
 using **Python**, **Pytest**, and **Playwright**.
 
-The goal of the project is to demonstrate clean test structure, Page Object Model (POM) usage, and basic reporting — similar to what is expected in real automation frameworks.
+The goal of the project is to demonstrate clean test structure, Page Object Model (POM) usage, and basic reporting - similar to what is expected in real automation frameworks.
 
 ---
 
