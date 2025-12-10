@@ -1,4 +1,4 @@
-# 🧪 Playwright UI Testing Project
+# Playwright UI Testing Project
 
 This repository contains automated UI tests for the demo banking application  
 👉 https://demo.applitools.com  
