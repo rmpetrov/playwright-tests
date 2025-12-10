@@ -38,6 +38,16 @@ my-playwright-tests/
 ```
 
 ---
+## Screenshots
+
+### Test Run Example
+<img src="screenshots/test_successful_login.png" width="600"/>
+
+### Dashboard Test Screenshot (on failure)
+<img src="screenshots/test_dashboard_transaction_amounts_formatted.png" width="600"/>
+
+
+---
 
 ## How to Run Tests
 
