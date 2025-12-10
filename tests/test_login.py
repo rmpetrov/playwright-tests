@@ -22,7 +22,6 @@ def test_login_page_ui_elements(page):
 
 
 def test_remember_me_unchecked_by_default(page):
-    """Чекбокс Remember Me по умолчанию должен быть не отмечен."""
     login_page = LoginPage(page)
 
     login_page.open()
