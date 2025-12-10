@@ -41,9 +41,11 @@ my-playwright-tests/
 ## Screenshots
 
 ### Test Run Example
+Screenshot of the login test execution:
 <img src="screenshots/test_successful_login.png" width="600"/>
 
 ### Dashboard Test Screenshot
+Example of dashboard UI validation after successful login:
 <img src="screenshots/test_dashboard_transaction_amounts_formatted.png" width="600"/>
 
 
