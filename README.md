@@ -8,7 +8,7 @@ The goal of the project is to demonstrate clean test structure, Page Object Mode
 
 ---
 
-## 🔧 Tech Stack
+## Tech Stack
 
 - Python 3.13+
 - Playwright (synchronous API)
@@ -19,7 +19,7 @@ The goal of the project is to demonstrate clean test structure, Page Object Mode
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 my-playwright-tests/
@@ -39,7 +39,7 @@ my-playwright-tests/
 
 ---
 
-## ▶️ How to Run Tests
+## How to Run Tests
 
 ### 1. Create and activate virtual environment (optional but recommended)
 
@@ -76,7 +76,7 @@ The report will be saved as `report.html` in the project root.
 
 ---
 
-## 🚀 Future Improvements
+## Future Improvements
 
 - Negative login scenarios (empty fields, invalid credentials)
 - Additional dashboard checks (filters, amounts, widgets)
