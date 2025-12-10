@@ -1,26 +1,45 @@
-import pytest
-from playwright.sync_api import sync_playwright
+# conftest.py
 import os
+from datetime import datetime
 
-@pytest.fixture
-def page(request):
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        page = browser.new_page()
-        yield page
+import pytest
 
-        # Скриншот при падении — только если test failed
-        if hasattr(request.node, "rep_call") and request.node.rep_call.failed:
-            os.makedirs("screenshots", exist_ok=True)
-            screenshot_path = f"screenshots/{request.node.name}.png"
-            page.screenshot(path=screenshot_path)
-            print(f"\n🧷 Скриншот сохранён: {screenshot_path}")
 
-        browser.close()
-
-# 🔄 Обязательный хук для фиксации статуса теста
-@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):
+    """
+    Хук, который сохраняет результат выполнения теста в атрибуты:
+    rep_setup, rep_call, rep_teardown.
+    """
     outcome = yield
     rep = outcome.get_result()
-    setattr(item, f"rep_{rep.when}", rep)
+    setattr(item, "rep_" + rep.when, rep)
+
+
+@pytest.fixture(autouse=True)
+def screenshot_on_failure(request):
+    """
+    Авто-фикстура: если тест упал на этапе call,
+    берём Playwright-фикстуру `page` и делаем свой скриншот
+    в папку screenshots/.
+    """
+    yield
+
+    rep = getattr(request.node, "rep_call", None)
+    if rep and rep.failed:
+        # пытаемся достать page — он есть во всех UI-тестах
+        try:
+            page = request.getfixturevalue("page")
+        except Exception:
+            # не UI-тест, page нет — просто выходим
+            return
+
+        screenshots_dir = "screenshots"
+        os.makedirs(screenshots_dir, exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{request.node.name}_{timestamp}.png"
+        filepath = os.path.join(screenshots_dir, filename)
+
+        page.screenshot(path=filepath, full_page=True)
+        print(f"\n🧷 Скриншот сохранён: {filepath}")

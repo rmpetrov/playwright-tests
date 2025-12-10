@@ -1,8 +1,15 @@
+# IDE
+.idea/
+
+# Python
 __pycache__/
 *.pyc
-.env
-.venv/
-*.log
-*.html
-screenshots/
-pytest_cache/.idea/
+
+# Playwright / pytest artifacts
+test-results/
+playwright-report/
+*.webm
+*.zip
+
+# Reports
+report.html
