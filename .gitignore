@@ -5,4 +5,4 @@ __pycache__/
 *.log
 *.html
 screenshots/
-pytest_cache/
+pytest_cache/.idea/
