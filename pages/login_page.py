@@ -32,3 +32,13 @@ class LoginPage:
     def is_remember_me_checked(self) -> bool:
         """Возвращает текущее состояние чекбокса Remember Me."""
         return self.page.get_by_label("Remember Me").is_checked()
+
+    def submit(self):
+        """Клик по кнопке логина без дополнительных действий."""
+        self.page.locator("#log-in").click()
+
+    def fill_username(self, username: str):
+        self.page.locator("#username").fill(username)
+
+    def fill_password(self, password: str):
+        self.page.locator("#password").fill(password)

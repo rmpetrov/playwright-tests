@@ -33,13 +33,11 @@ def test_dashboard_transactions_have_amount_column(page):
 
 
 def test_dashboard_transaction_amounts_formatted(page):
-    """Проверяем формат сумм в последнем столбце (что-то типа $123.45)."""
     dashboard_page = _login_and_open_dashboard(page)
     dashboard_page.assert_amounts_format()
 
 
 def test_dashboard_headers_count_reasonable(page):
-    """Простейшая sanity-проверка: у таблицы есть несколько колонок."""
     dashboard_page = _login_and_open_dashboard(page)
     headers = dashboard_page.get_transactions_headers_text()
     assert len(headers) >= 3, f"Expected at least 3 headers, got {len(headers)}"
