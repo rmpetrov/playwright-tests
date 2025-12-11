@@ -13,6 +13,10 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,22 +36,25 @@ jobs:
 
       - name: Run tests with HTML report
         run: |
-          pytest -v --html=html-report/index.html --self-contained-html
+          pytest -v \
+            --browser=${{ matrix.browser }} \
+            --html=html-report-${{ matrix.browser }}/index.html \
+            --self-contained-html
 
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: html-report
-          path: html-report
+          name: html-report-${{ matrix.browser }}
+          path: html-report-${{ matrix.browser }}
           if-no-files-found: ignore
 
       - name: Deploy HTML report to GitHub Pages
-        if: success()
+        if: success() && matrix.browser == 'chromium'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./html-report
+          publish_dir: ./html-report-chromium
           publish_branch: gh-pages
 
       - name: Upload test-results (if any)
