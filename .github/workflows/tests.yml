@@ -34,12 +34,21 @@ jobs:
           pip install pytest-playwright
           playwright install --with-deps
 
-      - name: Run tests with HTML report
+      - name: Run tests with HTML report and Allure results
         run: |
           pytest -v \
             --browser=${{ matrix.browser }} \
             --html=html-report/index.html \
-            --self-contained-html
+            --self-contained-html \
+            --alluredir=allure-results
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: allure-results
+          if-no-files-found: ignore
 
       - name: Upload HTML report
         if: always()
