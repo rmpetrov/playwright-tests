@@ -2,6 +2,7 @@
 
 ![Tests](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml/badge.svg)
 
+
 This repository contains automated UI tests for the demo banking application  
 https://demo.applitools.com  
 using **Python**, **Pytest**, and **Playwright**.
