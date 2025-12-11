@@ -3,22 +3,54 @@
 ![Tests](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml/badge.svg)
 
 
-This repository contains automated UI tests for the demo banking application  
+This repository contains automated **UI and API tests** for the demo banking application  
 https://demo.applitools.com  
-using **Python**, **Pytest**, and **Playwright**.
+using **Python**, **Pytest**, **Playwright**, **Allure**, and **GitHub Actions CI**.
 
-The goal of the project is to demonstrate clean test structure, Page Object Model (POM) usage, and basic reporting - similar to what is expected in real automation frameworks.
+The goal of the project is to demonstrate a clean automation architecture similar to enterprise-level frameworks, including:
+- Page Object Model (POM)
+- Cross-browser execution (Chromium, Firefox, WebKit)
+- HTML reports published via GitHub Pages
+- Allure reporting
+- API testing module
+- CI pipeline with artifacts (screenshots, video, trace, allure-results)
 
 ---
 
-## Tech Stack
+## Features
 
-- Python 3.13+
-- Playwright (synchronous API)
-- Pytest
-- Page Object Model (POM)
-- Automatic screenshots on failure
-- HTML reports via `pytest-html`
+### Cross-browser UI automation
+Tests run in 3 browsers via CI matrix:
+- **Chromium**
+- **Firefox**
+- **WebKit**
+
+### Page Object Model (POM)
+Clear separation of UI interactions into reusable page classes.
+
+### API Tests
+Lightweight API suite using `requests` and public API `reqres.in`.
+
+### Automatic screenshots, video & trace
+All failures generate:
+- Screenshots  
+- Playwright videos  
+- Playwright trace files  
+
+### HTML report (pytest-html)
+Latest report auto-published via GitHub Pages:
+
+**https://rmpetrov.github.io/playwright-tests/**
+
+### Allure reporting
+Local Allure report generation with full metadata:
+
+```bash
+pytest -v --alluredir=allure-results
+allure serve allure-results
+```
+
+CI also uploads **allure-results** as artifacts for every browser.
 
 ---
 
@@ -27,45 +59,64 @@ The goal of the project is to demonstrate clean test structure, Page Object Mode
 ```text
 my-playwright-tests/
   pages/
-    login_page.py        # POM for the login page
-    dashboard_page.py    # POM for the main dashboard after login
+    login_page.py
+    dashboard_page.py
 
   tests/
-    test_login.py        # Smoke test for successful login
-    test_dashboard.py    # Tests for dashboard widgets and transactions
+    test_login.py
+    test_dashboard.py
 
-  screenshots/           # Screenshots saved on test failures
-  conftest.py            # Pytest & Playwright configuration
+  api_tests/
+    test_users_api.py
+
+  screenshots/             
+  test-results/            
+  allure-results/          
+
+  conftest.py
   pytest.ini
   requirements.txt
 ```
-
----
-## Screenshots
-
-### Test Run Example
-Screenshot of the login test execution:
-<img src="screenshots/test_successful_login.png" width="600"/>
-
-### Dashboard Test Screenshot
-Example of dashboard UI validation after successful login:
-<img src="screenshots/test_dashboard_transaction_amounts_formatted.png" width="600"/>
-
-
 ---
 
-## How to Run Tests
+## Test Reporting Stack
 
-### 1. Create and activate virtual environment (optional but recommended)
+### Pytest + pytest-html  
+Generates static HTML reports.  
+In CI, Chromium report is auto-deployed to GitHub Pages.
+
+### Allure Framework  
+Enterprise-grade reporting: steps, attachments, categories, timelines.
+
+Local usage:
+
+```bash
+pytest --alluredir=allure-results
+allure serve allure-results
+```
+
+### GitHub Actions CI  
+Pipeline includes:
+
+- Python & Playwright installation  
+- Matrix execution in 3 browsers  
+- Storage of:
+  - HTML reports  
+  - Videos  
+  - Traces  
+  - Screenshots  
+  - Allure results  
+- Auto-deploy of HTML report
+
+---
+
+## How to Run Tests Locally
+
+### 1. Create virtual environment
 
 ```bash
 python -m venv .venv
-
-# macOS / Linux
 source .venv/bin/activate
-
-# Windows
-.\.venv\Scripts\activate
 ```
 
 ### 2. Install dependencies
@@ -75,28 +126,53 @@ pip install -r requirements.txt
 playwright install
 ```
 
-### 3. Run all tests
+### 3. Run entire suite
 
 ```bash
 pytest -v
 ```
 
-### 4. Generate HTML report
+### 4. Run only UI tests
 
 ```bash
-pytest --html=report.html --self-contained-html
+pytest tests/ -v
 ```
 
-The report will be saved as `report.html` in the project root.
+### 5. Run only API tests
+
+```bash
+pytest api_tests/ -v
+```
+
+### 6. Generate Allure report
+
+```bash
+pytest --alluredir=allure-results
+allure serve allure-results
+```
+
+---
+## Screenshots
+
+### HTML Test Report (GitHub Pages)
+![HTML Report Screenshot](docs/images/html_report_example.png)
+
+### Allure Report Dashboard
+![Allure Report Screenshot](docs/images/allure_report_example.png)
+
+### Playwright Trace Viewer
+![Trace Viewer Screenshot](docs/images/dashboard_example.png)
+
 
 ---
 
-## Future Improvements
+## 📈 Future Enhancements
 
-- Negative login scenarios (empty fields, invalid credentials)
-- Additional dashboard checks (filters, amounts, widgets)
-- API test suite using a public API (e.g., reqres.in)
-- GitHub Actions CI to run tests on each push
+- More negative UI scenarios  
+- API client layer abstraction  
+- Allure step decorators & severity tags  
+- Dockerized test environment  
+
 
 ---
 
