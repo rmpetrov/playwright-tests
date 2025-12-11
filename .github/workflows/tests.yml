@@ -27,9 +27,17 @@ jobs:
           pip install pytest-playwright
           playwright install --with-deps
 
-      - name: Run tests
+      - name: Run tests with HTML report
         run: |
-          pytest -v
+          pytest -v --html=report.html --self-contained-html
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report
+          path: report.html
+          if-no-files-found: ignore
 
       - name: Upload test-results (if any)
         if: always()
