@@ -19,10 +19,7 @@ class LoginPage:
 
         self.page.locator("#log-in").click()
 
-    # --- новые методы ---
-
     def assert_basic_ui_visible(self):
-        """Проверяем базовые элементы формы логина."""
         expect(self.page.get_by_text("Login Form")).to_be_visible()
         expect(self.page.get_by_placeholder("Enter your username")).to_be_visible()
         expect(self.page.get_by_placeholder("Enter your password")).to_be_visible()
@@ -30,11 +27,9 @@ class LoginPage:
         expect(self.page.locator("#log-in")).to_be_visible()
 
     def is_remember_me_checked(self) -> bool:
-        """Возвращает текущее состояние чекбокса Remember Me."""
         return self.page.get_by_label("Remember Me").is_checked()
 
     def submit(self):
-        """Клик по кнопке логина без дополнительных действий."""
         self.page.locator("#log-in").click()
 
     def fill_username(self, username: str):

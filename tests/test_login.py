@@ -3,7 +3,6 @@ from pages.dashboard_page import DashboardPage
 
 
 def test_successful_login(page):
-    """Позитивный сценарий: логин с любыми непустыми данными."""
     login_page = LoginPage(page)
     dashboard_page = DashboardPage(page)
 
@@ -14,7 +13,6 @@ def test_successful_login(page):
 
 
 def test_login_page_ui_elements(page):
-    """Проверяем, что на странице логина видны все базовые элементы."""
     login_page = LoginPage(page)
 
     login_page.open()

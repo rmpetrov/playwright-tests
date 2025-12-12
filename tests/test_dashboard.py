@@ -13,19 +13,16 @@ def _login_and_open_dashboard(page) -> DashboardPage:
 
 
 def test_dashboard_overview_cards_visible(page):
-    """Проверяем, что основные виджеты дашборда отображаются."""
     dashboard_page = _login_and_open_dashboard(page)
     dashboard_page.assert_overview_cards_present()
 
 
 def test_dashboard_has_transactions(page):
-    """Проверяем, что таблица транзакций не пустая."""
     dashboard_page = _login_and_open_dashboard(page)
     dashboard_page.assert_has_transactions()
 
 
 def test_dashboard_transactions_have_amount_column(page):
-    """Проверяем, что в таблице есть колонка Amount (по названию)."""
     dashboard_page = _login_and_open_dashboard(page)
     headers = dashboard_page.get_transactions_headers_text()
     assert any("amount" in h.lower() for h in headers), \
