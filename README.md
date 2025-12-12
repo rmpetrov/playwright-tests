@@ -175,6 +175,6 @@ allure serve allure-results
 
 
 ---
-
+ 
 **Author:** Roman Petrov  
 **GitHub:** https://github.com/rmpetrov
