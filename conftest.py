@@ -7,10 +7,6 @@ import pytest
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):
-    """
-    Хук, который сохраняет результат выполнения теста в атрибуты:
-    rep_setup, rep_call, rep_teardown.
-    """
     outcome = yield
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
@@ -18,20 +14,13 @@ def pytest_runtest_makereport(item, call):
 
 @pytest.fixture(autouse=True)
 def screenshot_on_failure(request):
-    """
-    Авто-фикстура: если тест упал на этапе call,
-    берём Playwright-фикстуру `page` и делаем свой скриншот
-    в папку screenshots/.
-    """
     yield
 
     rep = getattr(request.node, "rep_call", None)
     if rep and rep.failed:
-        # пытаемся достать page — он есть во всех UI-тестах
         try:
             page = request.getfixturevalue("page")
         except Exception:
-            # не UI-тест, page нет — просто выходим
             return
 
         screenshots_dir = "screenshots"
