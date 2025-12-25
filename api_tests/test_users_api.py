@@ -1,5 +1,5 @@
-import requests
 import pytest
+import requests
 
 BASE_URL = "https://reqres.in/api"
 

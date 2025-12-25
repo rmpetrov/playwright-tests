@@ -1,4 +1,5 @@
 import re
+
 from playwright.sync_api import Page, expect
 
 
@@ -40,5 +41,3 @@ class DashboardPage:
         pattern = re.compile(r"^[+-]?\s?\d[\d,]*(?:\.\d{2})?\sUSD$")
         for value in amount_texts:
             assert pattern.match(value), f"Invalid amount format: {value}"
-
-

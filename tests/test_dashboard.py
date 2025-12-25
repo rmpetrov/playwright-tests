@@ -1,5 +1,5 @@
-from pages.login_page import LoginPage
 from pages.dashboard_page import DashboardPage
+from pages.login_page import LoginPage
 
 
 def _login_and_open_dashboard(page) -> DashboardPage:
@@ -25,8 +25,9 @@ def test_dashboard_has_transactions(page):
 def test_dashboard_transactions_have_amount_column(page):
     dashboard_page = _login_and_open_dashboard(page)
     headers = dashboard_page.get_transactions_headers_text()
-    assert any("amount" in h.lower() for h in headers), \
+    assert any("amount" in h.lower() for h in headers), (
         f"No 'Amount' column found in headers: {headers}"
+    )
 
 
 def test_dashboard_transaction_amounts_formatted(page):
