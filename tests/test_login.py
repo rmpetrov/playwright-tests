@@ -1,3 +1,4 @@
+from config import settings
 from pages.dashboard_page import DashboardPage
 from pages.login_page import LoginPage
 
@@ -7,7 +8,7 @@ def test_successful_login(page):
     dashboard_page = DashboardPage(page)
 
     login_page.open()
-    login_page.login("test_user", "test_password", remember=True)
+    login_page.login(settings.username, settings.password, remember=True)
 
     dashboard_page.assert_loaded()
 

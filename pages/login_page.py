@@ -1,14 +1,15 @@
 from playwright.sync_api import Page, expect
 
+from config import settings
+
 
 class LoginPage:
-    URL = "https://demo.applitools.com/"
-
     def __init__(self, page: Page):
         self.page = page
 
     def open(self):
-        self.page.goto(self.URL)
+        self.page.set_default_timeout(settings.timeout_ms)
+        self.page.goto(settings.base_url)
 
     def login(self, username: str, password: str, remember: bool = False):
         self.page.locator("#username").fill(username)
