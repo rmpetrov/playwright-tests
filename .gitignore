@@ -13,3 +13,10 @@ playwright-report/
 
 # Reports
 report.html
+
+# Allure (generated artifacts)
+allure-results/
+allure-report/
+# Allure (generated artifacts)
+allure-results/
+allure-report/
