@@ -4,3 +4,4 @@ playwright
 allure-pytest
 pytest-html
 pytest-base-url
+pre-commit
