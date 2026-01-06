@@ -1,8 +1,13 @@
 # conftest.py
+from __future__ import annotations
+
 import os
 from datetime import datetime
 
 import pytest
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
