@@ -10,6 +10,13 @@ test-results/
 playwright-report/
 *.webm
 *.zip
+.pytest_cache/
+
+# Virtualenv
+.venv/
+
+# Local env
+.env
 
 # Reports
 report.html
