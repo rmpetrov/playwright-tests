@@ -7,6 +7,10 @@ from datetime import datetime
 import pytest
 from dotenv import load_dotenv
 
+from config import settings
+from pages.dashboard_page import DashboardPage
+from pages.login_page import LoginPage
+
 load_dotenv()
 
 
@@ -37,3 +41,15 @@ def screenshot_on_failure(request):
 
         page.screenshot(path=filepath, full_page=True)
         print(f"\n🧷 Скриншот сохранён: {filepath}")
+
+
+@pytest.fixture
+def dashboard_page(page) -> DashboardPage:
+    login_page = LoginPage(page)
+    dashboard_page = DashboardPage(page)
+
+    login_page.open()
+    login_page.login(settings.username, settings.password, remember=True)
+    dashboard_page.assert_loaded()
+
+    return dashboard_page
