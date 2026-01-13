@@ -44,12 +44,15 @@ def screenshot_on_failure(request):
 
 
 @pytest.fixture
-def dashboard_page(page) -> DashboardPage:
+def authorized_page(page):
     login_page = LoginPage(page)
-    dashboard_page = DashboardPage(page)
-
     login_page.open()
     login_page.login(settings.username, settings.password, remember=True)
-    dashboard_page.assert_loaded()
+    return page
 
-    return dashboard_page
+
+@pytest.fixture
+def dashboard_page(authorized_page) -> DashboardPage:
+    dashboard = DashboardPage(authorized_page)
+    dashboard.assert_loaded()
+    return dashboard
