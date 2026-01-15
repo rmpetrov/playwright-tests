@@ -27,3 +27,6 @@ allure-report/
 # Allure (generated artifacts)
 allure-results/
 allure-report/
+
+
+.auth/
