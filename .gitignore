@@ -8,6 +8,7 @@ __pycache__/
 # Playwright / pytest artifacts
 test-results/
 playwright-report/
+screenshots/
 *.webm
 *.zip
 .pytest_cache/
@@ -24,9 +25,6 @@ report.html
 # Allure (generated artifacts)
 allure-results/
 allure-report/
-# Allure (generated artifacts)
-allure-results/
-allure-report/
 
-
+# Playwright auth state
 .auth/
