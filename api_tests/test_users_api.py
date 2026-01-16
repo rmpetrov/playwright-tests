@@ -3,6 +3,8 @@ import requests
 
 BASE_URL = "https://reqres.in/api"
 
+pytestmark = pytest.mark.api
+
 
 def test_get_users_list():
     response = requests.get(f"{BASE_URL}/users", params={"page": 1})
