@@ -1,4 +1,8 @@
+import pytest
+
 from pages.dashboard_page import DashboardPage
+
+pytestmark = pytest.mark.ui
 
 
 def test_dashboard_overview_cards_visible(dashboard_page: DashboardPage):

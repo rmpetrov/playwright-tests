@@ -1,6 +1,10 @@
+import pytest
+
 from config import settings
 from pages.dashboard_page import DashboardPage
 from pages.login_page import LoginPage
+
+pytestmark = pytest.mark.ui
 
 
 def test_successful_login(page):
