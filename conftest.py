@@ -47,6 +47,12 @@ def screenshot_on_failure(request):
         print(f"\n🧷 Скриншот сохранён: {filepath}")
 
 
+@pytest.fixture(autouse=True)
+def apply_default_timeout(page):
+    """Apply consistent timeout from settings to all test pages."""
+    page.set_default_timeout(settings.timeout_ms)
+
+
 @pytest.fixture
 def authorized_page(page):
     return page
@@ -72,9 +78,13 @@ def auth_storage_state_path(playwright) -> str:
     AUTH_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     # Always regenerate for simplicity and to avoid stale sessions.
-    browser = playwright.chromium.launch()
+    browser = playwright.chromium.launch(
+        headless=settings.headless,
+        slow_mo=settings.slow_mo_ms,
+    )
     context = browser.new_context(base_url=settings.base_url)
     page = context.new_page()
+    page.set_default_timeout(settings.timeout_ms)
 
     login_page = LoginPage(page)
     login_page.open()
