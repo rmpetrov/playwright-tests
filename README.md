@@ -4,15 +4,15 @@
 
 ---
 ## Project highlights
-- ✅ UI automation with Playwright + Pytest (Page Object Model)
-- ✅ Environment-based configuration (`ENV=local | ci`)
-- ✅ CI-ready execution (headless runs in GitHub Actions)
-- ✅ Auth reuse via Playwright storage state (fast, stable tests)
-- ✅ Consistent timeouts applied via autouse fixture
-- ✅ UI + API tests in a single test framework
-- ✅ HTML reports published via GitHub Pages
-- ✅ Allure reporting with artifacts (screenshots, video, trace)
-- ✅ Code quality enforced via pre-commit (ruff: lint + format)
+-  UI automation with Playwright + Pytest (Page Object Model)
+-  Environment-based configuration (`ENV=local | ci`)
+-  CI-ready execution (headless runs in GitHub Actions)
+-  Auth reuse via Playwright storage state (fast, stable tests)
+-  Consistent timeouts applied via autouse fixture
+-  UI + API tests in a single test framework
+-  HTML reports published via GitHub Pages
+-  Allure reporting with artifacts (screenshots, video, trace)
+-  Code quality enforced via pre-commit (ruff: lint + format)
 
 ---
 
