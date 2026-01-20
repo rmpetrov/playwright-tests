@@ -28,3 +28,6 @@ allure-report/
 
 # Playwright auth state
 .auth/
+
+.DS_Store
+**/.DS_Store
