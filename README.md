@@ -2,18 +2,28 @@
 
 ![Tests](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml/badge.svg)
 
+---
+## Project highlights
+- ✅ UI automation with Playwright + Pytest (Page Object Model)
+- ✅ Environment-based configuration (`ENV=local | ci`)
+- ✅ CI-ready execution (headless runs in GitHub Actions)
+- ✅ Auth reuse via Playwright storage state (fast, stable tests)
+- ✅ Consistent timeouts applied via autouse fixture
+- ✅ UI + API tests in a single test framework
+- ✅ HTML reports published via GitHub Pages
+- ✅ Allure reporting with artifacts (screenshots, video, trace)
+- ✅ Code quality enforced via pre-commit (ruff: lint + format)
 
-This repository contains automated **UI and API tests** for the demo banking application  
-https://demo.applitools.com  
-using **Python**, **Pytest**, **Playwright**, **Allure**, and **GitHub Actions CI**.
+---
 
-The goal of the project is to demonstrate a clean automation architecture similar to enterprise-level frameworks, including:
-- Page Object Model (POM)
-- Cross-browser execution (Chromium, Firefox, WebKit)
-- HTML reports published via GitHub Pages
-- Allure reporting
-- API testing module
-- CI pipeline with artifacts (screenshots, video, trace, allure-results)
+## What this framework demonstrates
+This project demonstrates how I design and evolve a maintainable automation framework:
+
+- **Test architecture**: clear separation of tests, page objects (POM), and fixtures
+- **Stability & reliability**: centralized timeouts, deterministic auth setup, reduced flakiness
+- **Configuration & portability**: same test suite runs locally and in CI with minimal changes
+- **CI readiness**: headless execution, reproducible environment, test artifacts
+- **Scalability mindset**: UI and API tests share the same tooling and conventions
 
 ---
 
@@ -126,10 +136,15 @@ pip install -r requirements.txt
 playwright install
 ```
 
-### 3. Run entire suite
+### 3. Run tests
 
+Local execution (default, headed):
 ```bash
 pytest -v
+```
+CI-like execution (headless):
+```bash
+ENV=ci pytest -v
 ```
 
 ### 4. Run only UI tests
