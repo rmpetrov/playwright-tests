@@ -165,7 +165,9 @@ pytest api_tests/ -v
 pytest --alluredir=allure-results
 allure serve allure-results
 ```
-
+---
+## Docs
+- [Execution modes (local vs CI)](docs/execution.md)
 ---
 ## Screenshots
 
