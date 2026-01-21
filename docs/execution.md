@@ -1,7 +1,16 @@
 # Execution modes
 
-This project supports multiple execution profiles controlled via environment variables.
+This project supports multiple execution profiles designed for local development and CI environments.
 All defaults and overrides are centralized in `config.py`.
+
+## Test types
+
+The project contains two independent test types:
+
+- **UI tests** — Playwright-based browser tests (`tests/`)
+- **API tests** — HTTP-level tests using `requests` (`api_tests/`)
+
+API tests do not depend on Playwright or browser execution and can be run independently.
 
 ## ENV=local (default)
 
@@ -26,6 +35,27 @@ Run:
 ```bash
 ENV=ci pytest -q
 ```
+
+## UI tests
+
+Run UI tests locally:
+```bash
+pytest tests -v
+```
+
+Run UI tests in CI mode:
+```bash
+ENV=ci pytest tests -v --browser=chromium
+```
+
+## API tests
+
+Run API tests:
+```bash
+pytest api_tests -v
+```
+
+API tests run without browser context and do not require Playwright.
 
 ## Configuration overrides
 
@@ -59,3 +89,10 @@ Authentication storage state is generated once and reused:
 - Avoids repeated UI logins
 - Speeds up test execution
 - Keeps tests focused on application behavior
+
+## CI execution
+
+In CI environments:
+- UI tests run in headless mode
+- Execution uses the `ENV=ci` profile
+- Test reports and artifacts are collected for post-run analysis
