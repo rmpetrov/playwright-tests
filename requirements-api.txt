@@ -1,0 +1,6 @@
+# Minimal dependencies for API tests (no Playwright)
+pytest
+requests
+allure-pytest
+pytest-html
+python-dotenv
