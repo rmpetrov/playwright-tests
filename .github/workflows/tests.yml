@@ -10,10 +10,52 @@ permissions:
   contents: write
 
 jobs:
-  tests:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-api.txt
+
+      - name: Run API tests
+        run: |
+          pytest -v api_tests \
+            --html=html-report/api/index.html \
+            --self-contained-html \
+            --alluredir=allure-results-api
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-api
+          path: allure-results-api
+          if-no-files-found: ignore
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report-api
+          path: html-report/api
+          if-no-files-found: ignore
+
+  ui-tests:
     runs-on: ubuntu-latest
     env:
       ENV: ci
+      PYTHONPATH: ${{ github.workspace }}
 
     strategy:
       fail-fast: false
@@ -33,31 +75,34 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements-ui.txt
           playwright install --with-deps
 
-      - name: Run tests with HTML report and Allure results
+      - name: Run UI tests
         run: |
-          pytest -v \
+          pytest -v tests \
             --browser=${{ matrix.browser }} \
-            --html=html-report/index.html \
+            --tracing=retain-on-failure \
+            --video=retain-on-failure \
+            --screenshot=only-on-failure \
+            --html=html-report/ui/index.html \
             --self-contained-html \
-            --alluredir=allure-results
+            --alluredir=allure-results-ui
 
       - name: Upload Allure results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: allure-results-${{ matrix.browser }}
-          path: allure-results
+          name: allure-results-ui-${{ matrix.browser }}
+          path: allure-results-ui
           if-no-files-found: ignore
 
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: html-report-${{ matrix.browser }}
-          path: html-report
+          name: html-report-ui-${{ matrix.browser }}
+          path: html-report/ui
           if-no-files-found: ignore
 
       - name: Upload test-results (if any)
