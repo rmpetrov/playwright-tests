@@ -1,98 +1,90 @@
 # Execution modes
 
-This project supports multiple execution profiles designed for local development and CI environments.
-All defaults and overrides are centralized in `config.py`.
+This project supports environment-based configuration for local development and CI.
+All settings are centralized in `config.py`.
 
-## Test types
+## Test suites
 
-The project contains two independent test types:
+The project contains two independent test suites:
 
-- **UI tests** — Playwright-based browser tests (`tests/`)
-- **API tests** — HTTP-level tests using `requests` (`api_tests/`)
+| Suite | Location | Dependencies | Playwright required |
+|-------|----------|--------------|---------------------|
+| UI tests | `tests/` | pytest, playwright | Yes |
+| API tests | `api_tests/` | pytest, requests | No |
 
-API tests do not depend on Playwright or browser execution and can be run independently.
+API tests do not depend on Playwright and can be executed without browser installation.
 
-## ENV=local (default)
+## Running tests locally
 
-Use this mode for local development and debugging.
+### API tests
 
-- Browser typically runs **headed** (UI visible)
-- Best for test development and investigation
-
-Run:
-```bash
-pytest -q
-```
-
-## ENV=ci
-
-Use this mode in CI environments where no display server is available.
-
-- Runs **headless** for stability and performance
-- Matches GitHub Actions configuration
-
-Run:
-```bash
-ENV=ci pytest -q
-```
-
-## UI tests
-
-Run UI tests locally:
-```bash
-pytest tests -v
-```
-
-Run UI tests in CI mode:
-```bash
-ENV=ci pytest tests -v --browser=chromium
-```
-
-## API tests
-
-Run API tests:
 ```bash
 pytest api_tests -v
 ```
 
-API tests run without browser context and do not require Playwright.
+No Playwright or browser installation required.
+
+### UI tests
+
+```bash
+pytest tests -v
+```
+
+Runs with headed browser by default (`ENV=local`).
+
+### UI tests in headless mode
+
+```bash
+ENV=ci pytest tests -v --browser=chromium
+```
+
+## Environment profiles
+
+| Profile | Headless | Use case |
+|---------|----------|----------|
+| `ENV=local` (default) | No | Local development, debugging |
+| `ENV=ci` | Yes | CI pipelines, headless execution |
 
 ## Configuration overrides
 
 Individual settings can be overridden via environment variables:
 
-- `PW_BASE_URL`
-- `PW_USERNAME`
-- `PW_PASSWORD`
-- `PW_TIMEOUT_MS`
-- `PW_HEADLESS`
-- `PW_SLOW_MO_MS`
+| Variable | Description |
+|----------|-------------|
+| `PW_BASE_URL` | Application base URL |
+| `PW_USERNAME` | Test user username |
+| `PW_PASSWORD` | Test user password |
+| `PW_TIMEOUT_MS` | Default timeout in milliseconds |
+| `PW_HEADLESS` | Override headless mode (true/false) |
+| `PW_SLOW_MO_MS` | Slow down execution for debugging |
 
 Example:
 ```bash
-PW_TIMEOUT_MS=60000 PW_HEADLESS=true pytest -q
+PW_TIMEOUT_MS=60000 pytest tests -v
 ```
+
+## CI job structure
+
+GitHub Actions runs API and UI tests in separate parallel jobs:
+
+| Job | Dependencies | Command |
+|-----|--------------|---------|
+| `api-tests` | `requirements-api.txt` | `pytest -v api_tests` |
+| `ui-tests` | `requirements-ui.txt` + Playwright | `pytest -v tests --browser=<matrix>` |
+
+- API tests run without Playwright installation
+- UI tests run in headless mode with `ENV=ci`
+- Each job uploads its own artifacts (HTML reports, Allure results)
 
 ## Timeouts
 
-A global default timeout is applied to all Playwright pages via an autouse fixture:
-
-- Ensures consistent behavior across tests
-- Avoids relying on Playwright defaults
-
-The value is controlled by `PW_TIMEOUT_MS`.
+A global default timeout is applied to all Playwright pages via an autouse fixture.
+Controlled by `PW_TIMEOUT_MS` (default: 30000ms).
 
 ## Authentication state
 
-Authentication storage state is generated once and reused:
+UI tests reuse authenticated storage state to avoid repeated logins:
 
-- Avoids repeated UI logins
+- Generated once per test session
+- Stored in `.auth/` (gitignored)
 - Speeds up test execution
-- Keeps tests focused on application behavior
-
-## CI execution
-
-In CI environments:
-- UI tests run in headless mode
-- Execution uses the `ENV=ci` profile
-- Test reports and artifacts are collected for post-run analysis
