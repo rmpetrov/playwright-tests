@@ -1,0 +1,6 @@
+# Dependencies for UI tests (includes Playwright)
+-r requirements-api.txt
+
+playwright
+pytest-playwright
+pytest-base-url
