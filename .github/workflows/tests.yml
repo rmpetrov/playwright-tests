@@ -55,6 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ENV: ci
+      PYTHONPATH: ${{ github.workspace }}
 
     strategy:
       fail-fast: false
@@ -81,6 +82,9 @@ jobs:
         run: |
           pytest -v tests \
             --browser=${{ matrix.browser }} \
+            --tracing=retain-on-failure \
+            --video=retain-on-failure \
+            --screenshot=only-on-failure \
             --html=html-report/ui/index.html \
             --self-contained-html \
             --alluredir=allure-results-ui
