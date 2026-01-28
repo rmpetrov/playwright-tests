@@ -39,7 +39,7 @@ Tests run in 3 browsers via CI matrix:
 Clear separation of UI interactions into reusable page classes.
 
 ### API Tests
-Lightweight API suite using `requests` and public API `reqres.in`.
+Lightweight API suite using `requests` with mocked HTTP responses for deterministic execution.
 
 ### Automatic screenshots, video & trace
 All failures generate:
@@ -73,19 +73,17 @@ my-playwright-tests/
     dashboard_page.py
 
   tests/
+    conftest.py           # UI fixtures (Playwright)
     test_login.py
     test_dashboard.py
 
   api_tests/
-    test_users_api.py
+    test_users_api.py     # Mocked HTTP tests
 
-  screenshots/             
-  test-results/            
-  allure-results/          
-
-  conftest.py
+  config.py               # Environment-based settings
   pytest.ini
-  requirements.txt
+  requirements-api.txt    # API test dependencies
+  requirements-ui.txt     # UI test dependencies (includes API)
 ```
 ---
 
@@ -131,35 +129,38 @@ source .venv/bin/activate
 
 ### 2. Install dependencies
 
+**For API tests only** (no Playwright required):
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-api.txt
+```
+
+**For UI tests** (includes Playwright):
+```bash
+pip install -r requirements-ui.txt
 playwright install
 ```
 
-### 3. Run tests
+### 3. Run API tests
 
-Local execution (default, headed):
 ```bash
-pytest -v
+pytest -v api_tests
 ```
+
+API tests use mocked HTTP responses and run without external dependencies.
+
+### 4. Run UI tests
+
+Local execution (headed browser):
+```bash
+pytest -v tests
+```
+
 CI-like execution (headless):
 ```bash
-ENV=ci pytest -v
+ENV=ci pytest -v tests
 ```
 
-### 4. Run only UI tests
-
-```bash
-pytest tests/ -v
-```
-
-### 5. Run only API tests
-
-```bash
-pytest api_tests/ -v
-```
-
-### 6. Generate Allure report
+### 5. Generate Allure report
 
 ```bash
 pytest --alluredir=allure-results
