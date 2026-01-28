@@ -64,8 +64,35 @@ ruff format .
 - `.env` — local environment overrides (not committed)
 - Environment variables: `PW_BASE_URL`, `PW_USERNAME`, `PW_PASSWORD`, `PW_TIMEOUT_MS`
 
+## Dependency Management
+
+This project uses `pip-tools` for reproducible dependency management.
+
+### Source files (edit these)
+- `requirements-api.in` — direct dependencies for API tests
+- `requirements-ui.in` — direct dependencies for UI tests (includes API deps)
+- `requirements-dev.txt` — dev tools (pip-tools, pre-commit, ruff)
+
+### Compiled files (generated, do not edit manually)
+- `requirements-api.txt` — pinned dependencies for API tests
+- `requirements-ui.txt` — pinned dependencies for UI tests
+
+### Updating dependencies
+```bash
+# Install pip-tools
+pip install pip-tools
+
+# Regenerate pinned requirements (API first, then UI)
+python -m piptools compile --strip-extras -o requirements-api.txt requirements-api.in
+python -m piptools compile --strip-extras -o requirements-ui.txt requirements-ui.in
+
+# Upgrade all dependencies to latest versions
+python -m piptools compile --upgrade --strip-extras -o requirements-api.txt requirements-api.in
+python -m piptools compile --upgrade --strip-extras -o requirements-ui.txt requirements-ui.in
+```
+
 ## Important Notes
 
 - `.auth/` directory contains Playwright storage state with sensitive session data — never commit or modify
 - `screenshots/` directory is auto-generated on test failures — gitignored
-- pytest.ini configures `--tracing=retain-on-failure`, `--video=retain-on-failure`, `--screenshot=only-on-failure`
+- Playwright CLI options (`--tracing`, `--video`, `--screenshot`) are set in CI workflow, not pytest.ini

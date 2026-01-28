@@ -82,8 +82,10 @@ my-playwright-tests/
 
   config.py               # Environment-based settings
   pytest.ini
-  requirements-api.txt    # API test dependencies
-  requirements-ui.txt     # UI test dependencies (includes API)
+  requirements-api.in     # API deps source (pip-compile input)
+  requirements-api.txt    # API deps pinned (pip-compile output)
+  requirements-ui.in      # UI deps source (pip-compile input)
+  requirements-ui.txt     # UI deps pinned (pip-compile output)
 ```
 ---
 
@@ -136,7 +138,7 @@ pip install -r requirements-api.txt
 
 **For UI tests** (includes Playwright):
 ```bash
-pip install -r requirements-ui.txt
+pip install -r requirements-api.txt -r requirements-ui.txt
 playwright install
 ```
 
