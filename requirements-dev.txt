@@ -1,2 +1,4 @@
-ruff
+# Development tools (not pinned - install latest)
+pip-tools
 pre-commit
+ruff
