@@ -1,0 +1,5 @@
+# Direct dependencies for UI tests (constrained by compiled API lockfile)
+-c requirements-api.txt
+playwright
+pytest-playwright
+pytest-base-url

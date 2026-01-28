@@ -1,0 +1,8 @@
+# Direct dependencies for API tests
+
+pytest
+requests
+responses
+allure-pytest
+pytest-html
+python-dotenv
