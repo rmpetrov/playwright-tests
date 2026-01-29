@@ -52,6 +52,7 @@ ruff format .
 ### Test Structure
 - `tests/` — UI tests (marked with `@pytest.mark.ui`)
 - `api_tests/` — API tests (marked with `@pytest.mark.api`)
+- `--strict-markers` is enforced; all tests must use registered markers
 
 ### Fixtures (conftest.py)
 - `page` — Playwright page (from pytest-playwright)
@@ -94,5 +95,5 @@ python -m piptools compile --upgrade --strip-extras -o requirements-ui.txt requi
 ## Important Notes
 
 - `.auth/` directory contains Playwright storage state with sensitive session data — never commit or modify
-- `screenshots/` directory is auto-generated on test failures — gitignored
+- Runtime artifacts are gitignored: `screenshots/`, `html-report/`, `allure-results/`, `test-results/`
 - Playwright CLI options (`--tracing`, `--video`, `--screenshot`) are set in CI workflow, not pytest.ini
