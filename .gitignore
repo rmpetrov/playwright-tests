@@ -8,9 +8,10 @@ __pycache__/
 # Playwright / pytest artifacts
 test-results/
 playwright-report/
+html-report/
 screenshots/
+*.trace.zip
 *.webm
-*.zip
 .pytest_cache/
 
 # Virtualenv
@@ -28,6 +29,7 @@ allure-report/
 
 # Playwright auth state
 .auth/
+storage_state*.json
 
 .DS_Store
 **/.DS_Store
