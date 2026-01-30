@@ -54,11 +54,12 @@ ruff format .
 - `api_tests/` — API tests (marked with `@pytest.mark.api`)
 - `--strict-markers` is enforced; all tests must use registered markers
 
-### Fixtures (conftest.py)
+### Fixtures (tests/conftest.py)
 - `page` — Playwright page (from pytest-playwright)
 - `authorized_page` — page with completed login
 - `dashboard_page` — authorized page navigated to dashboard
-- `screenshot_on_failure` — auto-captures screenshot on test failure
+- `allure_attach_on_failure` — attaches screenshot, HTML, URL to Allure on failure
+- `capture_console_logs` — captures browser console and attaches on failure
 
 ### Configuration
 - `config.py` — Settings dataclass loaded from environment variables
@@ -90,6 +91,22 @@ python -m piptools compile --strip-extras -o requirements-ui.txt requirements-ui
 # Upgrade all dependencies to latest versions
 python -m piptools compile --upgrade --strip-extras -o requirements-api.txt requirements-api.in
 python -m piptools compile --upgrade --strip-extras -o requirements-ui.txt requirements-ui.in
+```
+
+## Allure Reporting
+
+Page objects use `@allure.step()` decorators for step tracing. Tests use `@allure.feature()` and `@allure.severity()` for categorization.
+
+On UI test failure, Allure automatically attaches:
+- Screenshot (PNG)
+- Page HTML
+- Current URL
+- Browser console logs
+
+Run with Allure:
+```bash
+pytest tests -v --alluredir=allure-results
+allure serve allure-results
 ```
 
 ## Important Notes
