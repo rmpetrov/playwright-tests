@@ -4,10 +4,9 @@
 
 from __future__ import annotations
 
-import os
-from datetime import datetime
 from pathlib import Path
 
+import allure
 import pytest
 from dotenv import load_dotenv
 
@@ -20,37 +19,98 @@ load_dotenv()
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):
+    """Store test result on the item for access in fixtures."""
     outcome = yield
     rep = outcome.get_result()
     setattr(item, "rep_" + rep.when, rep)
 
 
 @pytest.fixture(autouse=True)
-def screenshot_on_failure(request):
-    yield
-
-    rep = getattr(request.node, "rep_call", None)
-    if rep and rep.failed:
-        try:
-            page = request.getfixturevalue("page")
-        except Exception:
-            return
-
-        screenshots_dir = "screenshots"
-        os.makedirs(screenshots_dir, exist_ok=True)
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{request.node.name}_{timestamp}.png"
-        filepath = os.path.join(screenshots_dir, filename)
-
-        page.screenshot(path=filepath, full_page=True)
-        print(f"\n🧷 Скриншот сохранён: {filepath}")
+def apply_default_timeout(request):
+    """Apply consistent timeout from settings to all UI test pages."""
+    if "page" not in request.fixturenames:
+        return
+    page = request.getfixturevalue("page")
+    page.set_default_timeout(settings.timeout_ms)
 
 
 @pytest.fixture(autouse=True)
-def apply_default_timeout(page):
-    """Apply consistent timeout from settings to all test pages."""
-    page.set_default_timeout(settings.timeout_ms)
+def capture_console_logs(request):
+    """Capture browser console logs for UI tests and attach on failure."""
+    if "page" not in request.fixturenames:
+        yield
+        return
+
+    console_messages: list[str] = []
+
+    def handle_console(msg):
+        console_messages.append(f"[{msg.type}] {msg.text}")
+
+    page = request.getfixturevalue("page")
+    page.on("console", handle_console)
+
+    yield
+
+    rep = getattr(request.node, "rep_call", None)
+    if rep and rep.failed and console_messages:
+        log_text = "\n".join(console_messages[-100:])  # Limit to last 100 messages
+        allure.attach(
+            log_text,
+            name="browser_console",
+            attachment_type=allure.attachment_type.TEXT,
+        )
+
+
+@pytest.fixture(autouse=True)
+def allure_attach_on_failure(request):
+    """Attach screenshot, page HTML, and URL to Allure on UI test failure."""
+    yield
+
+    if "page" not in request.fixturenames:
+        return
+
+    rep = getattr(request.node, "rep_call", None)
+    if not rep or not rep.failed:
+        return
+
+    try:
+        page = request.getfixturevalue("page")
+    except Exception:
+        return
+
+    # Attach screenshot
+    try:
+        screenshot = page.screenshot(full_page=True)
+        allure.attach(
+            screenshot,
+            name="screenshot",
+            attachment_type=allure.attachment_type.PNG,
+        )
+    except Exception:
+        pass
+
+    # Attach page HTML (truncate if too large)
+    try:
+        html_content = page.content()
+        if len(html_content) > 500_000:  # 500KB limit
+            html_content = html_content[:500_000] + "\n<!-- truncated -->"
+        allure.attach(
+            html_content,
+            name="page_html",
+            attachment_type=allure.attachment_type.HTML,
+        )
+    except Exception:
+        pass
+
+    # Attach current URL
+    try:
+        allure.attach(
+            page.url,
+            name="page_url",
+            attachment_type=allure.attachment_type.TEXT,
+        )
+    except Exception:
+        pass
 
 
 @pytest.fixture
