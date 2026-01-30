@@ -109,8 +109,15 @@ pytest tests -v --alluredir=allure-results
 allure serve allure-results
 ```
 
+## Auth Storage State
+
+UI tests use per-browser storage state for session reuse:
+- Files: `.auth/storage_state_{browser_name}.json`
+- Generated once per browser on first test run, reused thereafter
+- Reset auth state: `rm -rf .auth/`
+
 ## Important Notes
 
-- `.auth/` directory contains Playwright storage state with sensitive session data — never commit or modify
+- `.auth/` directory contains Playwright storage state with sensitive session data — never commit
 - Runtime artifacts are gitignored: `screenshots/`, `html-report/`, `allure-results/`, `test-results/`
 - Playwright CLI options (`--tracing`, `--video`, `--screenshot`) are set in CI workflow, not pytest.ini
