@@ -126,19 +126,27 @@ def dashboard_page(authorized_page) -> DashboardPage:
     return dashboard
 
 
-AUTH_STATE_FILE = Path(".auth") / "storage_state.json"
+AUTH_STATE_DIR = Path(".auth")
 
 
 @pytest.fixture(scope="session")
-def auth_storage_state_path(playwright) -> str:
+def auth_storage_state_path(playwright, browser_name: str) -> str:
     """
-    Creates an authenticated storage state once per test session.
-    Tests will reuse it to avoid repeated UI logins.
-    """
-    AUTH_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    Creates a per-browser authenticated storage state once per test session.
+    Reuses existing state file if present to avoid repeated logins.
 
-    # Always regenerate for simplicity and to avoid stale sessions.
-    browser = playwright.chromium.launch(
+    Files: .auth/storage_state_{browser_name}.json
+    """
+    AUTH_STATE_DIR.mkdir(parents=True, exist_ok=True)
+    state_file = AUTH_STATE_DIR / f"storage_state_{browser_name}.json"
+
+    # Reuse existing state file if present
+    if state_file.exists():
+        return str(state_file)
+
+    # Generate new storage state for this browser
+    browser_type = getattr(playwright, browser_name)
+    browser = browser_type.launch(
         headless=settings.headless,
         slow_mo=settings.slow_mo_ms,
     )
@@ -150,12 +158,12 @@ def auth_storage_state_path(playwright) -> str:
     login_page.open()
     login_page.login(settings.username, settings.password, remember=True)
 
-    context.storage_state(path=str(AUTH_STATE_FILE))
+    context.storage_state(path=str(state_file))
 
     context.close()
     browser.close()
 
-    return str(AUTH_STATE_FILE)
+    return str(state_file)
 
 
 @pytest.fixture
