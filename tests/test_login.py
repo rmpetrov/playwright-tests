@@ -1,12 +1,14 @@
+import allure
 import pytest
 
 from config import settings
 from pages.dashboard_page import DashboardPage
 from pages.login_page import LoginPage
 
-pytestmark = pytest.mark.ui
+pytestmark = [pytest.mark.ui, allure.feature("Authentication")]
 
 
+@allure.severity(allure.severity_level.CRITICAL)
 def test_successful_login(page):
     login_page = LoginPage(page)
     dashboard_page = DashboardPage(page)
@@ -17,6 +19,7 @@ def test_successful_login(page):
     dashboard_page.assert_loaded()
 
 
+@allure.severity(allure.severity_level.NORMAL)
 def test_login_page_ui_elements(page):
     login_page = LoginPage(page)
 
@@ -24,6 +27,7 @@ def test_login_page_ui_elements(page):
     login_page.assert_basic_ui_visible()
 
 
+@allure.severity(allure.severity_level.MINOR)
 def test_remember_me_unchecked_by_default(page):
     login_page = LoginPage(page)
 
