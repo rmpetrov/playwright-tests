@@ -3,6 +3,7 @@
 pytest
 requests
 responses
+pydantic
 allure-pytest
 pytest-html
 python-dotenv
