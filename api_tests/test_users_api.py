@@ -2,12 +2,14 @@
 API tests for user endpoints.
 
 These tests use mocked HTTP responses for deterministic execution.
-They validate request handling, status codes, and response schema.
+They validate request handling, status codes, and response schema via Pydantic.
 """
 
 import pytest
-import requests
 import responses
+
+from api_tests.clients.users_client import UsersClient
+from api_tests.schemas.users import CreateUserRequest
 
 BASE_URL = "https://reqres.in/api"
 
@@ -15,8 +17,8 @@ pytestmark = pytest.mark.api
 
 
 @responses.activate
-def test_get_users_list():
-    """Test GET /users returns paginated user list with expected schema."""
+def test_get_users_list(users_client: UsersClient):
+    """Test GET /users returns paginated user list with validated schema."""
     mock_response = {
         "page": 1,
         "per_page": 6,
@@ -44,25 +46,23 @@ def test_get_users_list():
         status=200,
     )
 
-    response = requests.get(f"{BASE_URL}/users", params={"page": 1})
+    result = users_client.get_users(page=1)
 
-    assert response.status_code == 200
+    assert result.page == 1
+    assert result.per_page == 6
+    assert result.total == 12
+    assert len(result.data) == 2
 
-    body = response.json()
-    assert "data" in body
-    assert isinstance(body["data"], list)
-    assert len(body["data"]) > 0
-
-    first_user = body["data"][0]
-    assert "id" in first_user
-    assert "email" in first_user
-    assert "first_name" in first_user
-    assert "last_name" in first_user
+    first_user = result.data[0]
+    assert first_user.id == 1
+    assert first_user.email == "george.bluth@reqres.in"
+    assert first_user.first_name == "George"
+    assert first_user.last_name == "Bluth"
 
 
 @responses.activate
-def test_get_single_user():
-    """Test GET /users/{id} returns single user with expected fields."""
+def test_get_single_user(users_client: UsersClient):
+    """Test GET /users/{id} returns single user with validated schema."""
     mock_response = {
         "data": {
             "id": 2,
@@ -78,22 +78,16 @@ def test_get_single_user():
         status=200,
     )
 
-    response = requests.get(f"{BASE_URL}/users/2")
+    result = users_client.get_user(user_id=2)
 
-    assert response.status_code == 200
-
-    body = response.json()
-    assert "data" in body
-    user = body["data"]
-
-    assert user["id"] == 2
-    assert "email" in user
-    assert "first_name" in user
-    assert "last_name" in user
+    assert result.data.id == 2
+    assert result.data.email == "janet.weaver@reqres.in"
+    assert result.data.first_name == "Janet"
+    assert result.data.last_name == "Weaver"
 
 
 @responses.activate
-def test_get_single_user_not_found():
+def test_get_single_user_not_found(users_client: UsersClient):
     """Test GET /users/{id} returns 404 for non-existent user."""
     responses.add(
         responses.GET,
@@ -102,15 +96,14 @@ def test_get_single_user_not_found():
         status=404,
     )
 
-    response = requests.get(f"{BASE_URL}/users/23")
+    response = users_client.get_raw("/users/23")
 
     assert response.status_code == 404
 
 
 @responses.activate
-def test_create_user():
-    """Test POST /users creates user and returns expected fields."""
-    payload = {"name": "Roman QA", "job": "QA Engineer"}
+def test_create_user(users_client: UsersClient):
+    """Test POST /users creates user and returns validated response."""
     mock_response = {
         "name": "Roman QA",
         "job": "QA Engineer",
@@ -124,12 +117,10 @@ def test_create_user():
         status=201,
     )
 
-    response = requests.post(f"{BASE_URL}/users", json=payload)
+    request = CreateUserRequest(name="Roman QA", job="QA Engineer")
+    result = users_client.create_user(request)
 
-    assert response.status_code == 201
-
-    body = response.json()
-    assert body["name"] == payload["name"]
-    assert body["job"] == payload["job"]
-    assert "id" in body
-    assert "createdAt" in body
+    assert result.name == "Roman QA"
+    assert result.job == "QA Engineer"
+    assert result.id == "123"
+    assert result.createdAt == "2024-01-15T10:30:00.000Z"
