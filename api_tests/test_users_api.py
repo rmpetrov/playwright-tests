@@ -96,7 +96,7 @@ def test_get_single_user_not_found(users_client: UsersClient):
         status=404,
     )
 
-    response = users_client.get_raw("/users/23")
+    response = users_client.get_user_raw(23)
 
     assert response.status_code == 404
 
