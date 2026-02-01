@@ -48,9 +48,11 @@ All failures generate:
 - Playwright trace files  
 
 ### HTML report (pytest-html)
-Latest report auto-published via GitHub Pages:
+Latest reports auto-published via GitHub Pages:
 
-**https://rmpetrov.github.io/playwright-tests/**
+- **Landing page:** https://rmpetrov.github.io/playwright-tests/
+- **UI report:** https://rmpetrov.github.io/playwright-tests/ui/
+- **API report:** https://rmpetrov.github.io/playwright-tests/api/
 
 ### Allure reporting
 Local Allure report generation with full metadata:

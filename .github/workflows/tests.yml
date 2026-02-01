@@ -73,6 +73,7 @@ jobs:
           if-no-files-found: ignore
 
   ui-tests:
+    needs: api-tests
     runs-on: ubuntu-latest
     env:
       ENV: ci
@@ -133,6 +134,52 @@ jobs:
           name: test-results-${{ matrix.browser }}
           path: test-results
           if-no-files-found: ignore
+
+      - name: Generate landing page
+        if: success() && matrix.browser == 'chromium'
+        run: python scripts/generate_pages_index.py
+
+      - name: Download API report artifact
+        if: success() && matrix.browser == 'chromium'
+        uses: actions/download-artifact@v4
+        with:
+          name: html-report-api
+          path: html-report/api
+
+      - name: Validate HTML reports before deploy
+        if: success() && matrix.browser == 'chromium'
+        run: |
+          set -euo pipefail
+          echo "=== Validating required HTML reports ==="
+
+          required_files=(
+            "html-report/index.html"
+            "html-report/ui/index.html"
+            "html-report/api/index.html"
+          )
+
+          missing=0
+          for f in "${required_files[@]}"; do
+            if [[ -f "$f" ]]; then
+              echo "✓ $f"
+            else
+              echo "✗ MISSING: $f"
+              missing=1
+            fi
+          done
+
+          if [[ $missing -eq 1 ]]; then
+            echo ""
+            echo "=== Directory structure (html-report) ==="
+            ls -la html-report || true
+            echo ""
+            find html-report -maxdepth 3 -type f | sort | head -120 || true
+            echo ""
+            echo "ERROR: Required HTML reports are missing. Aborting deploy."
+            exit 1
+          fi
+
+          echo "All required reports present. Ready to deploy."
 
       - name: Deploy HTML report to GitHub Pages
         if: success() && matrix.browser == 'chromium'
