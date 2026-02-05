@@ -21,6 +21,10 @@ class DashboardPage:
         expect(self.page.get_by_text("Credit Available")).to_be_visible()
         expect(self.page.get_by_text("Financial Overview")).to_be_visible()
 
+    @allure.step("Assert overview card visible: {title}")
+    def assert_overview_card_visible(self, title: str):
+        expect(self.page.get_by_text(title)).to_be_visible()
+
     @allure.step("Assert transactions table has rows")
     def assert_has_transactions(self):
         rows = self.page.locator("table tbody tr")
@@ -31,6 +35,20 @@ class DashboardPage:
     def get_transactions_headers_text(self):
         headers = self.page.locator("table thead th")
         return [headers.nth(i).inner_text().strip() for i in range(headers.count())]
+
+    @allure.step("Get transaction header count")
+    def get_transactions_header_count(self) -> int:
+        return self.page.locator("table thead th").count()
+
+    @allure.step("Get transaction row cell counts")
+    def get_transaction_row_cell_counts(self, limit: int = 5) -> list[int]:
+        rows = self.page.locator("table tbody tr")
+        row_count = rows.count()
+        take = min(row_count, limit)
+        counts = []
+        for i in range(take):
+            counts.append(rows.nth(i).locator("td").count())
+        return counts
 
     @allure.step("Get amount column values")
     def get_amount_cells_text(self):

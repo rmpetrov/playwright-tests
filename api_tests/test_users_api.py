@@ -6,7 +6,9 @@ They validate request handling, status codes, and response schema via Pydantic.
 """
 
 import pytest
+import requests
 import responses
+from pydantic import ValidationError
 
 from api_tests.clients.users_client import UsersClient
 from api_tests.schemas.users import CreateUserRequest
@@ -124,3 +126,125 @@ def test_create_user(users_client: UsersClient):
     assert result.job == "QA Engineer"
     assert result.id == "123"
     assert result.createdAt == "2024-01-15T10:30:00.000Z"
+
+
+@responses.activate
+def test_get_users_list_schema_validation_error_missing_data(users_client: UsersClient):
+    """Schema validation should fail when required fields are missing."""
+    mock_response = {
+        "page": 1,
+        "per_page": 6,
+        "total": 12,
+        "total_pages": 2,
+    }
+    responses.add(
+        responses.GET,
+        f"{BASE_URL}/users",
+        json=mock_response,
+        status=200,
+    )
+
+    with pytest.raises(ValidationError):
+        users_client.get_users(page=1)
+
+
+@responses.activate
+def test_get_users_list_schema_validation_error_invalid_user_type(
+    users_client: UsersClient,
+):
+    """Schema validation should fail for invalid field types."""
+    mock_response = {
+        "page": 1,
+        "per_page": 6,
+        "total": 12,
+        "total_pages": 2,
+        "data": [
+            {
+                "id": "not-an-int",
+                "email": "bad.type@reqres.in",
+                "first_name": "Bad",
+                "last_name": "Type",
+            },
+        ],
+    }
+    responses.add(
+        responses.GET,
+        f"{BASE_URL}/users",
+        json=mock_response,
+        status=200,
+    )
+
+    with pytest.raises(ValidationError):
+        users_client.get_users(page=1)
+
+
+@responses.activate
+def test_get_single_user_schema_validation_error_invalid_user_type(
+    users_client: UsersClient,
+):
+    """Schema validation should fail for invalid field types in single user."""
+    mock_response = {
+        "data": {
+            "id": "not-an-int",
+            "email": "bad.type@reqres.in",
+            "first_name": "Bad",
+            "last_name": "Type",
+        }
+    }
+    responses.add(
+        responses.GET,
+        f"{BASE_URL}/users/2",
+        json=mock_response,
+        status=200,
+    )
+
+    with pytest.raises(ValidationError):
+        users_client.get_user(user_id=2)
+
+
+@responses.activate
+def test_create_user_schema_validation_error_missing_fields(users_client: UsersClient):
+    """Schema validation should fail when response is missing required fields."""
+    mock_response = {
+        "name": "Roman QA",
+        "job": "QA Engineer",
+    }
+    responses.add(
+        responses.POST,
+        f"{BASE_URL}/users",
+        json=mock_response,
+        status=201,
+    )
+
+    request = CreateUserRequest(name="Roman QA", job="QA Engineer")
+    with pytest.raises(ValidationError):
+        users_client.create_user(request)
+
+
+@responses.activate
+def test_get_users_list_server_error_raises_http_error(users_client: UsersClient):
+    """HTTP 500 should raise an HTTPError."""
+    responses.add(
+        responses.GET,
+        f"{BASE_URL}/users",
+        json={"error": "server"},
+        status=500,
+    )
+
+    with pytest.raises(requests.exceptions.HTTPError):
+        users_client.get_users(page=1)
+
+
+@responses.activate
+def test_create_user_server_error_raises_http_error(users_client: UsersClient):
+    """HTTP 500 should raise an HTTPError on create."""
+    responses.add(
+        responses.POST,
+        f"{BASE_URL}/users",
+        json={"error": "server"},
+        status=500,
+    )
+
+    request = CreateUserRequest(name="Roman QA", job="QA Engineer")
+    with pytest.raises(requests.exceptions.HTTPError):
+        users_client.create_user(request)
