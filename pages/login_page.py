@@ -1,5 +1,6 @@
 import allure
 from playwright.sync_api import Page, expect
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 from config import settings
 
@@ -34,9 +35,21 @@ class LoginPage:
     def is_remember_me_checked(self) -> bool:
         return self.page.get_by_label("Remember Me").is_checked()
 
+    @allure.step("Set Remember Me: {value}")
+    def set_remember_me(self, value: bool):
+        checkbox = self.page.get_by_label("Remember Me")
+        if value:
+            checkbox.check()
+        else:
+            checkbox.uncheck()
+
     @allure.step("Click login button")
     def submit(self):
         self.page.locator("#log-in").click()
+
+    @allure.step("Submit login via Enter")
+    def submit_via_enter(self):
+        self.page.locator("#password").press("Enter")
 
     @allure.step("Fill username: {username}")
     def fill_username(self, username: str):
@@ -45,3 +58,31 @@ class LoginPage:
     @allure.step("Fill password")
     def fill_password(self, password: str):
         self.page.locator("#password").fill(password)
+
+    @allure.step("Assert still on login page")
+    def assert_still_on_login(self):
+        expect(self.page).not_to_have_url("**/app.html")
+        expect(self.page.get_by_text("Login Form")).to_be_visible()
+
+    @allure.step("Get login error message text")
+    def get_error_message_text(self, timeout_ms: int = 1000) -> str:
+        alert = self.page.locator("#alert")
+        try:
+            alert.wait_for(state="visible", timeout=timeout_ms)
+        except PlaywrightTimeoutError:
+            return ""
+        return alert.inner_text().strip()
+
+    @allure.step("Assert error contains (if present): {expected_substring}")
+    def assert_error_contains_if_present(self, expected_substring: str):
+        text = self.get_error_message_text()
+        if not text:
+            return
+        assert expected_substring.lower() in text.lower(), (
+            f"Expected error to contain '{expected_substring}', got: {text}"
+        )
+
+    @allure.step("Assert password field is masked")
+    def assert_password_field_masked(self):
+        input_type = self.page.locator("#password").get_attribute("type")
+        assert input_type == "password", f"Expected password input type, got {input_type}"
