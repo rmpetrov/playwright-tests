@@ -3,6 +3,36 @@
 ![Tests](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml/badge.svg)
 
 ---
+## Portfolio summary
+- Target role: SDET / QA Automation
+- Focus: scalable UI + API automation, CI readiness, reporting, stability
+- Stack: Playwright (Python), Pytest, Allure, GitHub Actions
+
+---
+## Why this project
+I built this framework to demonstrate how I approach automation as an engineer, not just a test writer. It shows architecture decisions, reliability practices, and CI-ready execution with rich reporting.
+
+## Test strategy summary
+- Test levels: UI smoke/regression and API contract checks
+- Coverage intent: critical user flows, UI stability, and API schema validation
+- Data strategy: deterministic API responses via mocks for repeatable runs
+- Execution: local headed runs for debugging, headless CI for reproducibility
+- Observability: HTML reports, Allure, screenshots, video, trace on failure
+
+## Quality gates (CI)
+- Lint and format checks via Ruff
+- API tests run independently before UI tests
+- UI tests run in a 3-browser matrix (Chromium, Firefox, WebKit)
+- HTML reports and Allure results published as artifacts
+- Report validation step ensures deployable GitHub Pages output
+
+## Design decisions
+- Page Object Model to keep tests readable and maintainable
+- Centralized fixtures for timeouts and auth state reuse
+- Environment-based config to keep local and CI runs consistent
+- Typed API client with Pydantic for schema-level validation
+
+---
 ## Project highlights
 -  UI automation with Playwright + Pytest (Page Object Model)
 -  Environment-based configuration (`ENV=local | ci`)
@@ -173,6 +203,8 @@ allure serve allure-results
 ---
 ## Docs
 - [Execution modes (local vs CI)](docs/execution.md)
+- [Test strategy](docs/test_strategy.md)
+- [Architecture](docs/architecture.md)
 ---
 ## Screenshots
 
