@@ -64,6 +64,12 @@ class LoginPage:
         expect(self.page).not_to_have_url("**/app.html")
         expect(self.page.get_by_text("Login Form")).to_be_visible()
 
+    @allure.step("Check if current page is login page")
+    def is_login_page(self) -> bool:
+        if "/app.html" in self.page.url:
+            return False
+        return self.page.locator("#log-in").count() > 0
+
     @allure.step("Get login error message text")
     def get_error_message_text(self, timeout_ms: int = 1000) -> str:
         alert = self.page.locator("#alert")
