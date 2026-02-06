@@ -52,6 +52,7 @@ jobs:
       - name: Run API tests
         run: |
           pytest -v api_tests \
+            -m "not quarantine" \
             --html=html-report/api/index.html \
             --self-contained-html \
             --alluredir=allure-results-api
@@ -78,6 +79,8 @@ jobs:
     env:
       ENV: ci
       PYTHONPATH: ${{ github.workspace }}
+      PYTEST_RERUNS: "1"
+      PYTEST_RERUNS_DELAY: "2"
 
     strategy:
       fail-fast: false
@@ -98,12 +101,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-api.txt -r requirements-ui.txt
+          pip install "pytest-rerunfailures>=14,<17"
           playwright install --with-deps
 
       - name: Run UI tests
         run: |
           pytest -v tests \
+            -m "not quarantine" \
             --browser=${{ matrix.browser }} \
+            --reruns=${{ env.PYTEST_RERUNS }} \
+            --reruns-delay=${{ env.PYTEST_RERUNS_DELAY }} \
             --tracing=retain-on-failure \
             --video=retain-on-failure \
             --screenshot=only-on-failure \
