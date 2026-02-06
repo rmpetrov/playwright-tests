@@ -23,6 +23,7 @@ I built this framework to demonstrate how I approach automation as an engineer, 
 - Lint and format checks via Ruff
 - API tests run independently before UI tests
 - UI tests run in a 3-browser matrix (Chromium, Firefox, WebKit)
+- UI retries are controlled in CI (`1` rerun with delay) for transient browser instability
 - HTML reports and Allure results published as artifacts
 - Report validation step ensures deployable GitHub Pages output
 
@@ -31,6 +32,7 @@ I built this framework to demonstrate how I approach automation as an engineer, 
 - Centralized fixtures for timeouts and auth state reuse
 - Environment-based config to keep local and CI runs consistent
 - Typed API client with Pydantic for schema-level validation
+- Explicit flaky governance (marker metadata, quarantine exclusion, controlled retries)
 
 ---
 ## Project highlights
@@ -194,6 +196,11 @@ CI-like execution (headless):
 ENV=ci pytest -v tests
 ```
 
+Run with retry options (useful for transient browser instability investigation):
+```bash
+ENV=ci pytest -v tests --reruns=1 --reruns-delay=2
+```
+
 ### 5. Generate Allure report
 
 ```bash
@@ -205,6 +212,7 @@ allure serve allure-results
 - [Execution modes (local vs CI)](docs/execution.md)
 - [Test strategy](docs/test_strategy.md)
 - [Architecture](docs/architecture.md)
+- [Flaky test policy](docs/flaky_policy.md)
 ---
 ## Screenshots
 

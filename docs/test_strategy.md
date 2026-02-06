@@ -46,6 +46,8 @@ Out of scope (for this portfolio version):
 - Global Playwright timeout applied via autouse fixture
 - Auth storage state reuse to reduce flaky logins
 - Console logs, screenshots, video, and trace on failure
+- Controlled UI retries in CI to mitigate transient browser issues
+- Flaky handling governed by `docs/flaky_policy.md`
 
 ## Reporting
 - HTML reports published to GitHub Pages

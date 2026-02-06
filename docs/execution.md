@@ -70,11 +70,19 @@ GitHub Actions runs API and UI tests in separate parallel jobs:
 | Job | Dependencies | Command |
 |-----|--------------|---------|
 | `api-tests` | `requirements-api.txt` | `pytest -v api_tests` |
-| `ui-tests` | `requirements-ui.txt` + Playwright | `pytest -v tests --browser=<matrix>` |
+| `ui-tests` | `requirements-ui.txt` + Playwright | `pytest -v tests --browser=<matrix> --reruns=1 --reruns-delay=2` |
 
 - API tests run without Playwright installation
 - UI tests run in headless mode with `ENV=ci`
+- CI excludes quarantined tests from blocking gates (`-m \"not quarantine\"`)
 - Each job uploads its own artifacts (HTML reports, Allure results)
+
+## Flaky handling
+
+- Retry scope is limited to UI tests in CI
+- Retry count is intentionally low (`1`) to avoid masking stable failures
+- `flaky` and `quarantine` markers are registered in `pytest.ini`
+- Flaky governance details are documented in `docs/flaky_policy.md`
 
 ## Timeouts
 

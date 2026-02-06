@@ -3,3 +3,4 @@
 playwright
 pytest-playwright
 pytest-base-url
+pytest-rerunfailures
