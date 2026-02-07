@@ -58,8 +58,9 @@ Out of scope (for this portfolio version):
 - Ruff lint and format checks
 - API tests must pass before UI tests
 - UI tests run on Chromium, Firefox, and WebKit
+- CI excludes `quarantine` tests from blocking runs
 
 ## Future Enhancements
-- Add retry policy with explicit flaky marker
 - Add integration tests against real APIs
 - Add data builders for more complex test setup
+- Add non-functional checks (performance/accessibility) as separate, non-blocking stages

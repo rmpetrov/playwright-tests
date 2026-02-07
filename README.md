@@ -1,242 +1,85 @@
-# Playwright UI Testing Project
+# Playwright Test Automation Portfolio
 
 ![Tests](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml/badge.svg)
 
----
-## Portfolio summary
-- Target role: SDET / QA Automation
-- Focus: scalable UI + API automation, CI readiness, reporting, stability
-- Stack: Playwright (Python), Pytest, Allure, GitHub Actions
+## Quick Links
+- Report portal: https://rmpetrov.github.io/playwright-tests/
+- SDET showcase: https://github.com/rmpetrov/sdet-toolbox
+- SDET toolbox reports: https://rmpetrov.github.io/sdet-toolbox/
 
----
-## Why this project
-I built this framework to demonstrate how I approach automation as an engineer, not just a test writer. It shows architecture decisions, reliability practices, and CI-ready execution with rich reporting.
+## What to look at first
+- CI pipeline and quality gates: [`.github/workflows/tests.yml`](.github/workflows/tests.yml)
+- Stability governance (`flaky` + `quarantine`): [`docs/flaky_policy.md`](docs/flaky_policy.md)
+- Framework design and boundaries: [`docs/architecture.md`](docs/architecture.md)
 
-## Test strategy summary
-- Test levels: UI smoke/regression and API contract checks
-- Coverage intent: critical user flows, UI stability, and API schema validation
-- Data strategy: deterministic API responses via mocks for repeatable runs
-- Execution: local headed runs for debugging, headless CI for reproducibility
-- Observability: HTML reports, Allure, screenshots, video, trace on failure
+## Proof
+- Workflow runs: https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml
+- GitHub Pages reports: https://rmpetrov.github.io/playwright-tests/
+- PR history: https://github.com/rmpetrov/playwright-tests/pulls?q=is%3Apr
 
-## Quality gates (CI)
-- Lint and format checks via Ruff
-- API tests run independently before UI tests
-- UI tests run in a 3-browser matrix (Chromium, Firefox, WebKit)
-- UI retries are controlled in CI (`1` rerun with delay) for transient browser instability
-- HTML reports and Allure results published as artifacts
-- Report validation step ensures deployable GitHub Pages output
+## Portfolio Summary
+- Target role: SDET / QA Automation Engineer
+- Focus: maintainable UI and API automation with CI/CD observability
+- Tech stack: Playwright, Pytest, Requests, Responses, Pydantic, Allure, GitHub Actions
+- Reliability controls: centralized timeouts, storage-state auth reuse, controlled UI retries, flaky governance
 
-## Design decisions
-- Page Object Model to keep tests readable and maintainable
-- Centralized fixtures for timeouts and auth state reuse
-- Environment-based config to keep local and CI runs consistent
-- Typed API client with Pydantic for schema-level validation
-- Explicit flaky governance (marker metadata, quarantine exclusion, controlled retries)
+## CI Pipeline
+The `Tests` workflow runs three stages:
+1. `lint`: `ruff check` and `ruff format --check`
+2. `api-tests`: API suite with HTML and Allure artifacts
+3. `ui-tests`: Playwright suite on Chromium/Firefox/WebKit with retries, trace/video/screenshot artifacts, and GitHub Pages deployment
 
----
-## Project highlights
--  UI automation with Playwright + Pytest (Page Object Model)
--  Environment-based configuration (`ENV=local | ci`)
--  CI-ready execution (headless runs in GitHub Actions)
--  Auth reuse via Playwright storage state (fast, stable tests)
--  Consistent timeouts applied via autouse fixture
--  UI + API tests in a single test framework
--  HTML reports published via GitHub Pages
--  Allure reporting with artifacts (screenshots, video, trace)
--  Code quality enforced via pre-commit (ruff: lint + format)
+Pipeline behavior:
+- UI stage depends on `api-tests`
+- Quarantined tests are excluded from gating (`-m "not quarantine"`)
+- UI retries are controlled (`--reruns=1 --reruns-delay=2`)
 
----
-
-## What this framework demonstrates
-This project demonstrates how I design and evolve a maintainable automation framework:
-
-- **Test architecture**: clear separation of tests, page objects (POM), and fixtures
-- **Stability & reliability**: centralized timeouts, deterministic auth setup, reduced flakiness
-- **Configuration & portability**: same test suite runs locally and in CI with minimal changes
-- **CI readiness**: headless execution, reproducible environment, test artifacts
-- **Scalability mindset**: UI and API tests share the same tooling and conventions
-
----
-
-## Features
-
-### Cross-browser UI automation
-Tests run in 3 browsers via CI matrix:
-- **Chromium**
-- **Firefox**
-- **WebKit**
-
-### Page Object Model (POM)
-Clear separation of UI interactions into reusable page classes.
-
-### API Tests
-Lightweight API suite using `requests` with mocked HTTP responses for deterministic execution.
-
-### Automatic screenshots, video & trace
-All failures generate:
-- Screenshots  
-- Playwright videos  
-- Playwright trace files  
-
-### HTML report (pytest-html)
-Latest reports auto-published via GitHub Pages:
-
-- **Landing page:** https://rmpetrov.github.io/playwright-tests/
-- **UI report:** https://rmpetrov.github.io/playwright-tests/ui/
-- **API report:** https://rmpetrov.github.io/playwright-tests/api/
-
-### Allure reporting
-Local Allure report generation with full metadata:
-
-```bash
-pytest -v --alluredir=allure-results
-allure serve allure-results
-```
-
-CI also uploads **allure-results** as artifacts for every browser.
-
----
-
-## Project Structure
-
-```text
-my-playwright-tests/
-  pages/
-    login_page.py
-    dashboard_page.py
-
-  tests/
-    conftest.py           # UI fixtures (Playwright)
-    test_login.py
-    test_dashboard.py
-
-  api_tests/
-    test_users_api.py     # Mocked HTTP tests
-
-  config.py               # Environment-based settings
-  pytest.ini
-  requirements-api.in     # API deps source (pip-compile input)
-  requirements-api.txt    # API deps pinned (pip-compile output)
-  requirements-ui.in      # UI deps source (pip-compile input)
-  requirements-ui.txt     # UI deps pinned (pip-compile output)
-```
----
-
-## Test Reporting Stack
-
-### Pytest + pytest-html  
-Generates static HTML reports.  
-In CI, Chromium report is auto-deployed to GitHub Pages.
-
-### Allure Framework  
-Enterprise-grade reporting: steps, attachments, categories, timelines.
-
-Local usage:
-
-```bash
-pytest --alluredir=allure-results
-allure serve allure-results
-```
-
-### GitHub Actions CI  
-Pipeline includes:
-
-- Python & Playwright installation  
-- Matrix execution in 3 browsers  
-- Storage of:
-  - HTML reports  
-  - Videos  
-  - Traces  
-  - Screenshots  
-  - Allure results  
-- Auto-deploy of HTML report
-
----
-
-## How to Run Tests Locally
-
-### 1. Create virtual environment
-
+## Local Run
+### 1. Setup
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-```
-
-### 2. Install dependencies
-
-**For API tests only** (no Playwright required):
-```bash
-pip install -r requirements-api.txt
-```
-
-**For UI tests** (includes Playwright):
-```bash
 pip install -r requirements-api.txt -r requirements-ui.txt
 playwright install
 ```
 
-### 3. Run API tests
-
+Optional (for exact retry parity with CI):
 ```bash
-pytest -v api_tests
+pip install "pytest-rerunfailures>=14,<17"
 ```
 
-API tests use mocked HTTP responses and run without external dependencies.
-
-### 4. Run UI tests
-
-Local execution (headed browser):
+### 2. Use Make targets
 ```bash
-pytest -v tests
+make lint
+make test-api
+make test-ui-chromium
+make test-ui-all
+make report-allure
 ```
 
-CI-like execution (headless):
+### 3. Equivalent raw commands
 ```bash
-ENV=ci pytest -v tests
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+.venv/bin/pytest -v api_tests -m "not quarantine"
+ENV=ci .venv/bin/pytest -v tests -m "not quarantine" --browser=chromium --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
+ENV=ci .venv/bin/pytest -v tests -m "not quarantine" --browser=chromium --reruns=1 --reruns-delay=2 --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
+.venv/bin/pytest -v api_tests -m "not quarantine" --alluredir=allure-results
+allure generate allure-results -o allure-report --clean
 ```
 
-Run with retry options (useful for transient browser instability investigation):
-```bash
-ENV=ci pytest -v tests --reruns=1 --reruns-delay=2
+## Project Structure
+```text
+my-playwright-tests/
+  pages/                 # Playwright page objects
+  tests/                 # UI tests and fixtures
+  api_tests/             # API clients, schemas, and tests
+  docs/                  # Architecture, execution, strategy, flaky policy
+  .github/workflows/     # CI pipeline and report deployment
 ```
 
-### 5. Generate Allure report
-
-```bash
-pytest --alluredir=allure-results
-allure serve allure-results
-```
----
-## Docs
-- [Execution modes (local vs CI)](docs/execution.md)
-- [Test strategy](docs/test_strategy.md)
+## Documentation
+- [Execution modes and CI commands](docs/execution.md)
 - [Architecture](docs/architecture.md)
+- [Test strategy](docs/test_strategy.md)
 - [Flaky test policy](docs/flaky_policy.md)
----
-## Screenshots
-
-### HTML Test Report (GitHub Pages)
-![HTML Report Screenshot](docs/images/html_report_example.png)
-
-### Allure Report Dashboard
-![Allure Report Screenshot](docs/images/allure_report_example.png)
-
-### Playwright Trace Viewer
-![Trace Viewer Screenshot](docs/images/dashboard_example.png)
-
-
----
-
-## 📈 Future Enhancements
-
-- More negative UI scenarios  
-- API client layer abstraction  
-- Allure step decorators & severity tags  
-- Dockerized test environment  
-
-
----
-
-**Author:** Roman Petrov  
-**GitHub:** https://github.com/rmpetrov

@@ -1,98 +1,76 @@
-# Execution modes
+# Execution Modes
 
-This project supports environment-based configuration for local development and CI.
-All settings are centralized in `config.py`.
+This repository supports local and CI execution with shared config from `config.py`.
 
-## Test suites
+## Test Suites
+| Suite | Location | Main dependencies | Playwright required |
+|---|---|---|---|
+| UI | `tests/` | `pytest`, `playwright`, `pytest-playwright` | Yes |
+| API | `api_tests/` | `pytest`, `requests`, `responses`, `pydantic` | No |
 
-The project contains two independent test suites:
+## Environment Profiles
+| Profile | Headless | Typical use |
+|---|---|---|
+| `ENV=local` | No | local debugging |
+| `ENV=ci` | Yes | CI-like execution |
 
-| Suite | Location | Dependencies | Playwright required |
-|-------|----------|--------------|---------------------|
-| UI tests | `tests/` | pytest, playwright | Yes |
-| API tests | `api_tests/` | pytest, requests | No |
-
-API tests do not depend on Playwright and can be executed without browser installation.
-
-## Running tests locally
+## Local Commands
+Install optional CI retry plugin for parity:
+```bash
+pip install "pytest-rerunfailures>=14,<17"
+```
 
 ### API tests
-
 ```bash
-pytest api_tests -v
+pytest -v api_tests -m "not quarantine"
 ```
 
-No Playwright or browser installation required.
-
-### UI tests
-
+### UI tests (single browser)
 ```bash
-pytest tests -v
+ENV=ci pytest -v tests -m "not quarantine" --browser=chromium --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
 ```
 
-Runs with headed browser by default (`ENV=local`).
-
-### UI tests in headless mode
-
+UI test command with retry flags (same as CI):
 ```bash
-ENV=ci pytest tests -v --browser=chromium
+ENV=ci pytest -v tests -m "not quarantine" --browser=chromium --reruns=1 --reruns-delay=2 --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
 ```
 
-## Environment profiles
-
-| Profile | Headless | Use case |
-|---------|----------|----------|
-| `ENV=local` (default) | No | Local development, debugging |
-| `ENV=ci` | Yes | CI pipelines, headless execution |
-
-## Configuration overrides
-
-Individual settings can be overridden via environment variables:
-
-| Variable | Description |
-|----------|-------------|
-| `PW_BASE_URL` | Application base URL |
-| `PW_USERNAME` | Test user username |
-| `PW_PASSWORD` | Test user password |
-| `PW_TIMEOUT_MS` | Default timeout in milliseconds |
-| `PW_HEADLESS` | Override headless mode (true/false) |
-| `PW_SLOW_MO_MS` | Slow down execution for debugging |
-
-Example:
+### UI tests (all browsers)
 ```bash
-PW_TIMEOUT_MS=60000 pytest tests -v
+for browser in chromium firefox webkit; do
+  ENV=ci pytest -v tests -m "not quarantine" --browser="$browser" --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
+done
 ```
 
-## CI job structure
+## CI Stages (`.github/workflows/tests.yml`)
+1. `lint`
+- Runs `ruff check .`
+- Runs `ruff format --check .`
 
-GitHub Actions runs API and UI tests in separate parallel jobs:
+2. `api-tests`
+- Installs API dependencies
+- Runs `pytest -v api_tests -m "not quarantine" --html=... --alluredir=...`
+- Uploads HTML and Allure artifacts (`if: always()`)
 
-| Job | Dependencies | Command |
-|-----|--------------|---------|
-| `api-tests` | `requirements-api.txt` | `pytest -v api_tests` |
-| `ui-tests` | `requirements-ui.txt` + Playwright | `pytest -v tests --browser=<matrix> --reruns=1 --reruns-delay=2` |
+3. `ui-tests`
+- Depends on `api-tests`
+- Runs matrix on `chromium`, `firefox`, `webkit`
+- Runs `pytest -v tests -m "not quarantine" --browser=<matrix> --reruns=1 --reruns-delay=2 ...`
+- Uploads artifacts (`if: always()`)
+- Validates report structure and deploys `html-report` to `gh-pages` from Chromium job
 
-- API tests run without Playwright installation
-- UI tests run in headless mode with `ENV=ci`
-- CI excludes quarantined tests from blocking gates (`-m \"not quarantine\"`)
-- Each job uploads its own artifacts (HTML reports, Allure results)
+## Flaky Handling
+- `flaky` marker: known unstable test under investigation
+- `quarantine` marker: non-blocking test excluded from gating runs
+- Retry scope: UI stage only, one rerun with 2-second delay
+- Governance details: `docs/flaky_policy.md`
 
-## Flaky handling
-
-- Retry scope is limited to UI tests in CI
-- Retry count is intentionally low (`1`) to avoid masking stable failures
-- `flaky` and `quarantine` markers are registered in `pytest.ini`
-- Flaky governance details are documented in `docs/flaky_policy.md`
-
-## Timeouts
-
-A global default timeout is applied to all Playwright pages via an autouse fixture.
-Controlled by `PW_TIMEOUT_MS` (default: 30000ms).
-
-## Authentication state
-
-UI tests reuse authenticated storage state to avoid repeated logins:
-
-- Generated once per test session
-- Stored in `.auth/` (gitignored)
-- Speeds up test execution
+## Configuration Overrides
+| Variable | Purpose |
+|---|---|
+| `PW_BASE_URL` | application base URL |
+| `PW_USERNAME` | login username |
+| `PW_PASSWORD` | login password |
+| `PW_TIMEOUT_MS` | default Playwright timeout |
+| `PW_HEADLESS` | force headless mode |
+| `PW_SLOW_MO_MS` | add Playwright slow motion |
