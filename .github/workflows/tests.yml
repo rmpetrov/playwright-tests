@@ -157,36 +157,41 @@ jobs:
         if: success() && matrix.browser == 'chromium'
         run: |
           set -euo pipefail
-          echo "=== Validating required HTML reports ==="
+          echo "=== Validating report structure before GitHub Pages deploy ==="
 
-          required_files=(
-            "html-report/index.html"
-            "html-report/ui/index.html"
-            "html-report/api/index.html"
-          )
+          check_report() {
+            local file="$1"
+            local label="$2"
+            if [[ -f "$file" ]]; then
+              local size
+              size="$(wc -c < "$file" | tr -d ' ')"
+              echo "[OK] $label -> $file (${size} bytes)"
+              return 0
+            fi
+
+            echo "[MISSING] $label -> $file"
+            return 1
+          }
 
           missing=0
-          for f in "${required_files[@]}"; do
-            if [[ -f "$f" ]]; then
-              echo "✓ $f"
-            else
-              echo "✗ MISSING: $f"
-              missing=1
-            fi
-          done
+          check_report "html-report/index.html" "Landing page" || missing=1
+          check_report "html-report/ui/index.html" "UI report" || missing=1
+          check_report "html-report/api/index.html" "API report" || missing=1
 
-          if [[ $missing -eq 1 ]]; then
-            echo ""
-            echo "=== Directory structure (html-report) ==="
-            ls -la html-report || true
-            echo ""
-            find html-report -maxdepth 3 -type f | sort | head -120 || true
-            echo ""
-            echo "ERROR: Required HTML reports are missing. Aborting deploy."
-            exit 1
+          if [[ $missing -eq 0 ]]; then
+            echo "Report validation passed. Proceeding to deploy."
+            exit 0
           fi
 
-          echo "All required reports present. Ready to deploy."
+          echo ""
+          echo "=== Debug listing: html-report directory ==="
+          ls -la html-report || true
+          echo ""
+          echo "=== Debug listing: report files ==="
+          find html-report -maxdepth 3 -type f | sort | head -120 || true
+          echo ""
+          echo "ERROR: Required HTML reports are missing. Deployment aborted."
+          exit 1
 
       - name: Deploy HTML report to GitHub Pages
         if: success() && matrix.browser == 'chromium'
