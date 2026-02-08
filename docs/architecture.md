@@ -23,7 +23,7 @@ flowchart LR
 
 ## Folder Map
 ```text
-my-playwright-tests/
+playwright-tests/
   pages/            # UI page objects
   tests/            # UI test suite
   api_tests/        # API test suite

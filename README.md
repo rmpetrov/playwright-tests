@@ -2,6 +2,28 @@
 
 ![Tests](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml/badge.svg)
 
+## 60-Second Evaluation Path
+- Run locally:
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements-api.txt -r requirements-ui.txt && playwright install
+make test-api test-ui-chromium
+```
+- CI results: [`.github/workflows/tests.yml`](.github/workflows/tests.yml)
+- Published UI/API reports (GitHub Pages): https://rmpetrov.github.io/playwright-tests/
+- Architecture + flaky policy: [`docs/architecture.md`](docs/architecture.md), [`docs/flaky_policy.md`](docs/flaky_policy.md)
+
+## Scope
+- UI + API automation in one repo (Playwright + pytest + requests)
+- Deterministic suite with quarantine gates and controlled retries
+- CI artifacts (trace/video/screenshot, HTML + Allure)
+- Reporting via GitHub Pages deployment
+
+## Non-goals
+- Testing production systems or live customer data
+- Dependencies on unstable external services
+- Long-running monitoring, load, or performance testing
+
 ## Quick Links
 - Report portal: https://rmpetrov.github.io/playwright-tests/
 - SDET showcase: https://github.com/rmpetrov/sdet-toolbox
@@ -22,6 +44,10 @@
 - Focus: maintainable UI and API automation with CI/CD observability
 - Tech stack: Playwright, Pytest, Requests, Responses, Pydantic, Allure, GitHub Actions
 - Reliability controls: centralized timeouts, storage-state auth reuse, controlled UI retries, flaky governance
+
+## Related Work
+- SDET showcase: https://github.com/rmpetrov/sdet-toolbox
+- SDET toolbox reports: https://rmpetrov.github.io/sdet-toolbox/
 
 ## CI Pipeline
 The `Tests` workflow runs three stages:
@@ -70,7 +96,7 @@ allure generate allure-results -o allure-report --clean
 
 ## Project Structure
 ```text
-my-playwright-tests/
+playwright-tests/
   pages/                 # Playwright page objects
   tests/                 # UI tests and fixtures
   api_tests/             # API clients, schemas, and tests
