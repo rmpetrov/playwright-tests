@@ -24,6 +24,21 @@ make test-api test-ui-chromium
 - Dependencies on unstable external services
 - Long-running monitoring, load, or performance testing
 
+## Quick Links
+- Report portal: https://rmpetrov.github.io/playwright-tests/
+- SDET showcase: https://github.com/rmpetrov/sdet-toolbox
+- SDET toolbox reports: https://rmpetrov.github.io/sdet-toolbox/
+
+## What to look at first
+- CI pipeline and quality gates: [`.github/workflows/tests.yml`](.github/workflows/tests.yml)
+- Stability governance (`flaky` + `quarantine`): [`docs/flaky_policy.md`](docs/flaky_policy.md)
+- Framework design and boundaries: [`docs/architecture.md`](docs/architecture.md)
+
+## Proof
+- Workflow runs: https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml
+- GitHub Pages reports: https://rmpetrov.github.io/playwright-tests/
+- PR history: https://github.com/rmpetrov/playwright-tests/pulls?q=is%3Apr
+
 ## Portfolio Summary
 - Target role: SDET / QA Automation Engineer
 - Focus: maintainable UI and API automation with CI/CD observability
@@ -45,7 +60,8 @@ Pipeline behavior:
 - Quarantined tests are excluded from gating (`-m "not quarantine"`)
 - UI retries are controlled (`--reruns=1 --reruns-delay=2`)
 
-## Local Run (Detailed)
+## Local Run
+### 1. Setup
 ```bash
 python -m venv .venv
 source .venv/bin/activate
@@ -58,13 +74,24 @@ Optional (for exact retry parity with CI):
 pip install "pytest-rerunfailures>=14,<17"
 ```
 
-Use Make targets:
+### 2. Use Make targets
 ```bash
 make lint
 make test-api
 make test-ui-chromium
 make test-ui-all
 make report-allure
+```
+
+### 3. Equivalent raw commands
+```bash
+.venv/bin/ruff check .
+.venv/bin/ruff format --check .
+.venv/bin/pytest -v api_tests -m "not quarantine"
+ENV=ci .venv/bin/pytest -v tests -m "not quarantine" --browser=chromium --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
+ENV=ci .venv/bin/pytest -v tests -m "not quarantine" --browser=chromium --reruns=1 --reruns-delay=2 --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
+.venv/bin/pytest -v api_tests -m "not quarantine" --alluredir=allure-results
+allure generate allure-results -o allure-report --clean
 ```
 
 ## Project Structure
