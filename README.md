@@ -2,26 +2,37 @@
 
 ![Tests](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml/badge.svg)
 
-## Quick Links
-- Report portal: https://rmpetrov.github.io/playwright-tests/
-- SDET showcase: https://github.com/rmpetrov/sdet-toolbox
-- SDET toolbox reports: https://rmpetrov.github.io/sdet-toolbox/
+## 60-Second Evaluation Path
+- Run locally:
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements-api.txt -r requirements-ui.txt && playwright install
+make test-api test-ui-chromium
+```
+- CI results: [`actions/workflows/tests.yml`](actions/workflows/tests.yml)
+- Published UI/API reports (GitHub Pages): https://rmpetrov.github.io/playwright-tests/
+- Architecture + flaky policy: [`docs/architecture.md`](docs/architecture.md), [`docs/flaky_policy.md`](docs/flaky_policy.md)
 
-## What to look at first
-- CI pipeline and quality gates: [`.github/workflows/tests.yml`](.github/workflows/tests.yml)
-- Stability governance (`flaky` + `quarantine`): [`docs/flaky_policy.md`](docs/flaky_policy.md)
-- Framework design and boundaries: [`docs/architecture.md`](docs/architecture.md)
+## Scope
+- UI + API automation in one repo (Playwright + pytest + requests)
+- Deterministic suite with quarantine gates and controlled retries
+- CI artifacts (trace/video/screenshot, HTML + Allure)
+- Reporting via GitHub Pages deployment
 
-## Proof
-- Workflow runs: https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml
-- GitHub Pages reports: https://rmpetrov.github.io/playwright-tests/
-- PR history: https://github.com/rmpetrov/playwright-tests/pulls?q=is%3Apr
+## Non-goals
+- Testing production systems or live customer data
+- Dependencies on unstable external services
+- Long-running monitoring, load, or performance testing
 
 ## Portfolio Summary
 - Target role: SDET / QA Automation Engineer
 - Focus: maintainable UI and API automation with CI/CD observability
 - Tech stack: Playwright, Pytest, Requests, Responses, Pydantic, Allure, GitHub Actions
 - Reliability controls: centralized timeouts, storage-state auth reuse, controlled UI retries, flaky governance
+
+## Related Work
+- SDET showcase: https://github.com/rmpetrov/sdet-toolbox
+- SDET toolbox reports: https://rmpetrov.github.io/sdet-toolbox/
 
 ## CI Pipeline
 The `Tests` workflow runs three stages:
@@ -34,8 +45,7 @@ Pipeline behavior:
 - Quarantined tests are excluded from gating (`-m "not quarantine"`)
 - UI retries are controlled (`--reruns=1 --reruns-delay=2`)
 
-## Local Run
-### 1. Setup
+## Local Run (Detailed)
 ```bash
 python -m venv .venv
 source .venv/bin/activate
@@ -48,7 +58,7 @@ Optional (for exact retry parity with CI):
 pip install "pytest-rerunfailures>=14,<17"
 ```
 
-### 2. Use Make targets
+Use Make targets:
 ```bash
 make lint
 make test-api
@@ -57,20 +67,9 @@ make test-ui-all
 make report-allure
 ```
 
-### 3. Equivalent raw commands
-```bash
-.venv/bin/ruff check .
-.venv/bin/ruff format --check .
-.venv/bin/pytest -v api_tests -m "not quarantine"
-ENV=ci .venv/bin/pytest -v tests -m "not quarantine" --browser=chromium --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
-ENV=ci .venv/bin/pytest -v tests -m "not quarantine" --browser=chromium --reruns=1 --reruns-delay=2 --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure
-.venv/bin/pytest -v api_tests -m "not quarantine" --alluredir=allure-results
-allure generate allure-results -o allure-report --clean
-```
-
 ## Project Structure
 ```text
-my-playwright-tests/
+playwright-tests/
   pages/                 # Playwright page objects
   tests/                 # UI tests and fixtures
   api_tests/             # API clients, schemas, and tests
