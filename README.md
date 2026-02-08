@@ -9,7 +9,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements-api.txt -r requirements-ui.txt && playwright install
 make test-api test-ui-chromium
 ```
-- CI results: [`actions/workflows/tests.yml`](actions/workflows/tests.yml)
+- CI results: [`.github/workflows/tests.yml`](.github/workflows/tests.yml)
 - Published UI/API reports (GitHub Pages): https://rmpetrov.github.io/playwright-tests/
 - Architecture + flaky policy: [`docs/architecture.md`](docs/architecture.md), [`docs/flaky_policy.md`](docs/flaky_policy.md)
 
