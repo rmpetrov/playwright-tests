@@ -104,19 +104,41 @@ jobs:
           pip install "pytest-rerunfailures>=14,<17"
           playwright install --with-deps
 
+      - name: Start local app
+        run: |
+          python3 -m local_app > local-app.log 2>&1 &
+          echo "LOCAL_APP_PID=$!" >> "$GITHUB_ENV"
+
+      - name: Wait for local app readiness
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/health | grep -qx "ok"; then
+              echo "Local app is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "Local app failed readiness checks"
+          cat local-app.log || true
+          exit 1
+
       - name: Run UI tests
         run: |
-          pytest -v tests \
-            -m "not quarantine" \
-            --browser=${{ matrix.browser }} \
-            --reruns=${{ env.PYTEST_RERUNS }} \
-            --reruns-delay=${{ env.PYTEST_RERUNS_DELAY }} \
-            --tracing=retain-on-failure \
-            --video=retain-on-failure \
-            --screenshot=only-on-failure \
-            --html=html-report/ui/index.html \
-            --self-contained-html \
-            --alluredir=allure-results-ui
+          make test-ui-${{ matrix.browser }} \
+            EXTRA_PYTEST_ARGS="--reruns=${{ env.PYTEST_RERUNS }} --reruns-delay=${{ env.PYTEST_RERUNS_DELAY }}"
+
+      - name: Show local app log on failure
+        if: failure()
+        run: cat local-app.log || true
+
+      - name: Stop local app
+        if: always()
+        run: |
+          if [[ -n "${LOCAL_APP_PID:-}" ]]; then
+            kill "${LOCAL_APP_PID}" || true
+          fi
 
       - name: Upload Allure results
         if: always()
