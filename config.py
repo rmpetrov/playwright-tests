@@ -67,7 +67,7 @@ class Settings:
 
 
 settings = Settings(
-    base_url=_getenv("PW_BASE_URL", "https://demo.applitools.com/"),
+    base_url=_getenv("PW_BASE_URL", "http://127.0.0.1:8000"),
     username=_getenv("PW_USERNAME", "test_user"),
     password=_getenv("PW_PASSWORD", "test_password"),
     timeout_ms=_getenv_int("PW_TIMEOUT_MS", 30_000),
