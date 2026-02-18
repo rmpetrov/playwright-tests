@@ -1,7 +1,7 @@
 VENV_BIN ?= .venv/bin
 PYTHON ?= python3
-PYTEST ?= $(VENV_BIN)/pytest
-RUFF ?= $(VENV_BIN)/ruff
+PYTEST ?= pytest
+RUFF ?= ruff
 ALLURE ?= allure
 RERUN_ARGS := $(shell $(PYTEST) --help 2>/dev/null | grep -q -- '--reruns' && echo '--reruns=1 --reruns-delay=2')
 BROWSER ?= chromium
