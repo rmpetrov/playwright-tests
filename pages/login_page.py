@@ -1,3 +1,5 @@
+import re
+
 import allure
 from playwright.sync_api import Page, expect
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
@@ -6,6 +8,8 @@ from config import settings
 
 
 class LoginPage:
+    URL_PATTERN = re.compile(rf"{re.escape(settings.base_url.rstrip('/'))}(?:/|/login)?$")
+
     def __init__(self, page: Page):
         self.page = page
 
@@ -20,16 +24,25 @@ class LoginPage:
 
         if remember:
             self.page.get_by_label("Remember Me").check()
+        else:
+            self.page.get_by_label("Remember Me").uncheck()
 
         self.page.locator("#log-in").click()
 
     @allure.step("Assert login form UI elements visible")
     def assert_basic_ui_visible(self):
+        expect(self.page.locator("#login-page")).to_be_visible()
         expect(self.page.get_by_text("Login Form")).to_be_visible()
         expect(self.page.get_by_placeholder("Enter your username")).to_be_visible()
         expect(self.page.get_by_placeholder("Enter your password")).to_be_visible()
         expect(self.page.get_by_label("Remember Me")).to_be_visible()
         expect(self.page.locator("#log-in")).to_be_visible()
+
+    @allure.step("Assert login page loaded")
+    def assert_loaded(self):
+        expect(self.page).to_have_url(self.URL_PATTERN)
+        expect(self.page.locator("#login-page")).to_be_visible()
+        expect(self.page.locator("#login-form")).to_be_visible()
 
     @allure.step("Check if Remember Me is checked")
     def is_remember_me_checked(self) -> bool:
@@ -62,13 +75,7 @@ class LoginPage:
     @allure.step("Assert still on login page")
     def assert_still_on_login(self):
         expect(self.page).not_to_have_url("**/app.html")
-        expect(self.page.get_by_text("Login Form")).to_be_visible()
-
-    @allure.step("Check if current page is login page")
-    def is_login_page(self) -> bool:
-        if "/app.html" in self.page.url:
-            return False
-        return self.page.locator("#log-in").count() > 0
+        self.assert_loaded()
 
     @allure.step("Get login error message text")
     def get_error_message_text(self, timeout_ms: int = 1000) -> str:
@@ -78,15 +85,6 @@ class LoginPage:
         except PlaywrightTimeoutError:
             return ""
         return alert.inner_text().strip()
-
-    @allure.step("Assert error contains (if present): {expected_substring}")
-    def assert_error_contains_if_present(self, expected_substring: str):
-        text = self.get_error_message_text()
-        if not text:
-            return
-        assert expected_substring.lower() in text.lower(), (
-            f"Expected error to contain '{expected_substring}', got: {text}"
-        )
 
     @allure.step("Assert password field is masked")
     def assert_password_field_masked(self):

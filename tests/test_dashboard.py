@@ -20,6 +20,7 @@ def test_dashboard_overview_card_visible(dashboard_page: DashboardPage, card_tit
 
 
 @allure.severity(allure.severity_level.NORMAL)
+@pytest.mark.smoke
 def test_dashboard_has_transactions(dashboard_page: DashboardPage):
     dashboard_page.assert_has_transactions()
 
