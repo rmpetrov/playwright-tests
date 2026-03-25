@@ -19,6 +19,7 @@ pytestmark = pytest.mark.api
 
 
 @responses.activate
+@pytest.mark.smoke
 def test_get_users_list(users_client: UsersClient):
     """Test GET /users returns paginated user list with validated schema."""
     mock_response = {

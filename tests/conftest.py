@@ -17,6 +17,18 @@ from pages.login_page import LoginPage
 load_dotenv()
 
 
+def _get_ui_page(request):
+    """Return the active Playwright page for unauthenticated or authorized UI tests."""
+    try:
+        if "page" in request.fixturenames:
+            return request.getfixturevalue("page")
+        if any(name in request.fixturenames for name in ("authorized_page", "dashboard_page")):
+            return request.getfixturevalue("authorized_page")
+    except Exception:
+        return None
+    return None
+
+
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
 def pytest_runtest_makereport(item, call):
     """Store test result on the item for access in fixtures."""
@@ -28,16 +40,17 @@ def pytest_runtest_makereport(item, call):
 @pytest.fixture(autouse=True)
 def apply_default_timeout(request):
     """Apply consistent timeout from settings to all UI test pages."""
-    if "page" not in request.fixturenames:
+    page = _get_ui_page(request)
+    if page is None:
         return
-    page = request.getfixturevalue("page")
     page.set_default_timeout(settings.timeout_ms)
 
 
 @pytest.fixture(autouse=True)
 def capture_console_logs(request):
     """Capture browser console logs for UI tests and attach on failure."""
-    if "page" not in request.fixturenames:
+    page = _get_ui_page(request)
+    if page is None:
         yield
         return
 
@@ -46,7 +59,6 @@ def capture_console_logs(request):
     def handle_console(msg):
         console_messages.append(f"[{msg.type}] {msg.text}")
 
-    page = request.getfixturevalue("page")
     page.on("console", handle_console)
 
     yield
@@ -66,16 +78,12 @@ def allure_attach_on_failure(request):
     """Attach screenshot, page HTML, and URL to Allure on UI test failure."""
     yield
 
-    if "page" not in request.fixturenames:
+    page = _get_ui_page(request)
+    if page is None:
         return
 
     rep = getattr(request.node, "rep_call", None)
     if not rep or not rep.failed:
-        return
-
-    try:
-        page = request.getfixturevalue("page")
-    except Exception:
         return
 
     # Attach screenshot
@@ -114,8 +122,15 @@ def allure_attach_on_failure(request):
 
 
 @pytest.fixture
-def authorized_page(page):
-    return page
+def authorized_page(browser, auth_storage_state_path):
+    """Create an authenticated page without changing the default unauthenticated `page`."""
+    context = browser.new_context(
+        base_url=settings.base_url,
+        storage_state=auth_storage_state_path,
+    )
+    page = context.new_page()
+    yield page
+    context.close()
 
 
 @pytest.fixture
@@ -133,16 +148,14 @@ AUTH_STATE_DIR = Path(".auth")
 def auth_storage_state_path(playwright, browser_name: str) -> str:
     """
     Creates a per-browser authenticated storage state once per test session.
-    Reuses existing state file if present to avoid repeated logins.
+    Rebuilds the state file each session so it matches the current local app run.
 
     Files: .auth/storage_state_{browser_name}.json
     """
     AUTH_STATE_DIR.mkdir(parents=True, exist_ok=True)
     state_file = AUTH_STATE_DIR / f"storage_state_{browser_name}.json"
-
-    # Reuse existing state file if present
     if state_file.exists():
-        return str(state_file)
+        state_file.unlink()
 
     # Generate new storage state for this browser
     browser_type = getattr(playwright, browser_name)
@@ -157,6 +170,7 @@ def auth_storage_state_path(playwright, browser_name: str) -> str:
     login_page = LoginPage(page)
     login_page.open()
     login_page.login(settings.username, settings.password, remember=True)
+    DashboardPage(page).assert_loaded()
 
     context.storage_state(path=str(state_file))
 
@@ -167,8 +181,8 @@ def auth_storage_state_path(playwright, browser_name: str) -> str:
 
 
 @pytest.fixture
-def browser_context_args(auth_storage_state_path):
+def browser_context_args():
+    """Keep the default Playwright `page` fixture unauthenticated."""
     return {
         "base_url": settings.base_url,
-        "storage_state": auth_storage_state_path,
     }

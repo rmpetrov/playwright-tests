@@ -13,13 +13,17 @@ class DashboardPage:
     @allure.step("Assert dashboard page loaded")
     def assert_loaded(self):
         expect(self.page).to_have_url(self.URL_PATTERN)
+        expect(self.page.locator("#dashboard-page")).to_be_visible()
+        expect(self.page.locator("#dashboard-title")).to_be_visible()
         expect(self.page.get_by_text("Recent Transactions")).to_be_visible()
 
-    @allure.step("Assert overview cards present")
-    def assert_overview_cards_present(self):
-        expect(self.page.get_by_text("Total Balance")).to_be_visible()
-        expect(self.page.get_by_text("Credit Available")).to_be_visible()
-        expect(self.page.get_by_text("Financial Overview")).to_be_visible()
+    @allure.step("Log out from dashboard")
+    def logout(self):
+        self.page.locator("#log-out").click()
+
+    @allure.step("Assert session banner visible for {username}")
+    def assert_signed_in_as(self, username: str):
+        expect(self.page.locator("#session-banner")).to_have_text(f"Signed in as {username}")
 
     @allure.step("Assert overview card visible: {title}")
     def assert_overview_card_visible(self, title: str):

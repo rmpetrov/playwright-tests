@@ -79,6 +79,7 @@ jobs:
     env:
       ENV: ci
       PYTHONPATH: ${{ github.workspace }}
+      LOCAL_APP_READY: "false"
       PYTEST_RERUNS: "1"
       PYTEST_RERUNS_DELAY: "2"
 
@@ -112,16 +113,17 @@ jobs:
       - name: Wait for local app readiness
         run: |
           set -euo pipefail
-          for _ in $(seq 1 30); do
+          for attempt in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8000/health | grep -qx "ok"; then
-              echo "Local app is ready"
+              echo "LOCAL_APP_READY=true" >> "$GITHUB_ENV"
+              echo "Local app is ready on attempt ${attempt}"
               exit 0
             fi
             sleep 1
           done
 
-          echo "Local app failed readiness checks"
-          cat local-app.log || true
+          echo "Local app failed readiness checks after 30 attempts"
+          tail -n 50 local-app.log || true
           exit 1
 
       - name: Run UI tests
@@ -139,6 +141,14 @@ jobs:
           if [[ -n "${LOCAL_APP_PID:-}" ]]; then
             kill "${LOCAL_APP_PID}" || true
           fi
+
+      - name: Upload local app log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-app-log-${{ matrix.browser }}
+          path: local-app.log
+          if-no-files-found: ignore
 
       - name: Upload Allure results
         if: always()
@@ -163,6 +173,20 @@ jobs:
           name: test-results-${{ matrix.browser }}
           path: test-results
           if-no-files-found: ignore
+
+      - name: Publish UI job summary
+        if: always()
+        run: |
+          {
+            echo "## UI job summary"
+            echo ""
+            echo "- Browser under test: \`${{ matrix.browser }}\`"
+            echo "- Local app ready: \`${LOCAL_APP_READY}\`"
+            echo "- Local app log artifact: \`local-app-log-${{ matrix.browser }}\`"
+            echo "- UI HTML report artifact: \`html-report-ui-${{ matrix.browser }}\`"
+            echo "- UI Allure artifact: \`allure-results-ui-${{ matrix.browser }}\`"
+            echo "- Playwright artifacts: \`test-results-${{ matrix.browser }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Generate landing page
         if: success() && matrix.browser == 'chromium'
