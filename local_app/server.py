@@ -4,6 +4,7 @@ import base64
 import hashlib
 import hmac
 import html
+import json
 import os
 import time
 from http import HTTPStatus
@@ -15,6 +16,26 @@ DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
 SESSION_COOKIE_NAME = "local_app_session"
 REMEMBER_ME_MAX_AGE = 7 * 24 * 60 * 60
+DEFAULT_TRANSACTIONS = [
+    {
+        "date": "2026-02-10",
+        "description": "Salary",
+        "status": "Completed",
+        "amount": "+ 2,500.00 USD",
+    },
+    {
+        "date": "2026-02-09",
+        "description": "Groceries",
+        "status": "Completed",
+        "amount": "- 120.75 USD",
+    },
+    {
+        "date": "2026-02-08",
+        "description": "Gym Membership",
+        "status": "Completed",
+        "amount": "- 49.99 USD",
+    },
+]
 
 
 def _cookie_secret() -> bytes:
@@ -148,7 +169,48 @@ def _login_page_html(
 """.encode()
 
 
-def _app_page_html(username: str) -> bytes:
+def _dashboard_transactions_for(scenario: str) -> list[dict[str, str]]:
+    if scenario == "empty":
+        return []
+    return DEFAULT_TRANSACTIONS
+
+
+def _feedback_error_response(
+    code: str,
+    message: str,
+    details: list[dict[str, str]] | None = None,
+) -> dict[str, object]:
+    return {
+        "error": {
+            "code": code,
+            "message": message,
+            "details": details or [],
+        }
+    }
+
+
+def _app_page_html(username: str, transactions: list[dict[str, str]]) -> bytes:
+    empty_state_html = ""
+    if not transactions:
+        empty_state_html = '<p id="transactions-empty-state">No recent transactions to display.</p>'
+
+    rows_html = "\n".join(
+        """
+          <tr>
+            <td>{date}</td>
+            <td>{description}</td>
+            <td>{status}</td>
+            <td>{amount}</td>
+          </tr>
+""".format(
+            date=html.escape(transaction["date"]),
+            description=html.escape(transaction["description"]),
+            status=html.escape(transaction["status"]),
+            amount=html.escape(transaction["amount"]),
+        ).rstrip()
+        for transaction in transactions
+    )
+
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -176,6 +238,7 @@ def _app_page_html(username: str) -> bytes:
 
     <section>
       <h2>Recent Transactions</h2>
+      {empty_state_html}
       <table>
         <thead>
           <tr>
@@ -186,24 +249,7 @@ def _app_page_html(username: str) -> bytes:
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>2026-02-10</td>
-            <td>Salary</td>
-            <td>Completed</td>
-            <td>+ 2,500.00 USD</td>
-          </tr>
-          <tr>
-            <td>2026-02-09</td>
-            <td>Groceries</td>
-            <td>Completed</td>
-            <td>- 120.75 USD</td>
-          </tr>
-          <tr>
-            <td>2026-02-08</td>
-            <td>Gym Membership</td>
-            <td>Completed</td>
-            <td>- 49.99 USD</td>
-          </tr>
+          {rows_html}
         </tbody>
       </table>
     </section>
@@ -215,7 +261,9 @@ def _app_page_html(username: str) -> bytes:
 
 class _Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
-        path = urlsplit(self.path).path
+        url = urlsplit(self.path)
+        path = url.path
+        query = parse_qs(url.query)
         username = _get_authenticated_username(self.headers.get("Cookie"))
 
         if path == "/":
@@ -229,7 +277,9 @@ class _Handler(BaseHTTPRequestHandler):
             if not username:
                 self._redirect("/")
                 return
-            self._send_html(_app_page_html(username))
+            scenario = query.get("scenario", ["default"])[0].strip().lower()
+            transactions = _dashboard_transactions_for(scenario)
+            self._send_html(_app_page_html(username, transactions))
             return
 
         if path == "/health":
@@ -245,6 +295,10 @@ class _Handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         path = urlsplit(self.path).path
+        if path == "/api/feedback":
+            self._handle_feedback_submission()
+            return
+
         if path == "/login":
             self._handle_login()
             return
@@ -254,6 +308,81 @@ class _Handler(BaseHTTPRequestHandler):
             return
 
         self._send_text("not found", status=HTTPStatus.NOT_FOUND)
+
+    def _handle_feedback_submission(self) -> None:
+        content_type = self.headers.get("Content-Type", "")
+        if "application/json" not in content_type:
+            self._send_json(
+                _feedback_error_response(
+                    "unsupported_media_type",
+                    "Content-Type must be application/json.",
+                ),
+                status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
+            )
+            return
+
+        content_length = int(self.headers.get("Content-Length", "0"))
+        body = self.rfile.read(content_length)
+        try:
+            payload = json.loads(body.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            self._send_json(
+                _feedback_error_response(
+                    "malformed_json",
+                    "Request body must contain valid JSON.",
+                ),
+                status=HTTPStatus.BAD_REQUEST,
+            )
+            return
+
+        if not isinstance(payload, dict):
+            self._send_json(
+                _feedback_error_response(
+                    "validation_error",
+                    "Request validation failed.",
+                    details=[
+                        {
+                            "field": "body",
+                            "issue": "must be a JSON object",
+                        }
+                    ],
+                ),
+                status=HTTPStatus.BAD_REQUEST,
+            )
+            return
+
+        validation_errors = []
+        for field in ("subject", "message"):
+            value = payload.get(field)
+            if value is None:
+                validation_errors.append({"field": field, "issue": "required"})
+                continue
+            if not isinstance(value, str):
+                validation_errors.append({"field": field, "issue": "must be a string"})
+                continue
+            if not value.strip():
+                validation_errors.append({"field": field, "issue": "must not be empty"})
+
+        if validation_errors:
+            self._send_json(
+                _feedback_error_response(
+                    "validation_error",
+                    "Request validation failed.",
+                    details=validation_errors,
+                ),
+                status=HTTPStatus.BAD_REQUEST,
+            )
+            return
+
+        self._send_json(
+            {
+                "id": "feedback-demo-001",
+                "status": "accepted",
+                "subject": payload["subject"].strip(),
+                "messagePreview": payload["message"].strip()[:40],
+            },
+            status=HTTPStatus.CREATED,
+        )
 
     def _handle_login(self) -> None:
         content_length = int(self.headers.get("Content-Length", "0"))
@@ -312,6 +441,18 @@ class _Handler(BaseHTTPRequestHandler):
     def _send_html(self, body: bytes, status: HTTPStatus = HTTPStatus.OK) -> None:
         self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _send_json(
+        self,
+        payload: dict[str, object],
+        status: HTTPStatus = HTTPStatus.OK,
+    ) -> None:
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)

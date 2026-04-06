@@ -38,6 +38,11 @@ def test_dashboard_transaction_amounts_formatted(dashboard_page: DashboardPage):
     dashboard_page.assert_amounts_format()
 
 
+@allure.severity(allure.severity_level.NORMAL)
+def test_dashboard_transaction_dates_formatted(dashboard_page: DashboardPage):
+    dashboard_page.assert_dates_format()
+
+
 @allure.severity(allure.severity_level.MINOR)
 def test_dashboard_headers_count_reasonable(dashboard_page: DashboardPage):
     headers = dashboard_page.get_transactions_headers_text()
@@ -63,3 +68,29 @@ def test_dashboard_transactions_rows_have_consistent_columns(
     assert all(count == header_count for count in row_counts), (
         f"Row column counts do not match headers. headers={header_count}, rows={row_counts}"
     )
+
+
+@allure.severity(allure.severity_level.NORMAL)
+def test_dashboard_transaction_rows_have_required_values(dashboard_page: DashboardPage):
+    dashboard_page.assert_transaction_rows_have_required_values()
+
+
+@allure.severity(allure.severity_level.NORMAL)
+def test_dashboard_transaction_rows_count_matches_row_data(dashboard_page: DashboardPage):
+    row_count = dashboard_page.get_transaction_row_count()
+    row_data = dashboard_page.get_transaction_rows_data()
+
+    assert row_count > 0, "Expected transaction rows to be present"
+    assert row_count == len(row_data), (
+        f"Rendered row count does not match extracted data. count={row_count}, data={row_data}"
+    )
+
+
+@allure.severity(allure.severity_level.NORMAL)
+def test_dashboard_empty_state_message_visible(empty_dashboard_page: DashboardPage):
+    empty_dashboard_page.assert_empty_state_visible()
+
+
+@allure.severity(allure.severity_level.NORMAL)
+def test_dashboard_empty_state_has_no_transaction_rows(empty_dashboard_page: DashboardPage):
+    empty_dashboard_page.assert_has_no_transactions()

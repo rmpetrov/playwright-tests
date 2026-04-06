@@ -141,6 +141,14 @@ def dashboard_page(authorized_page) -> DashboardPage:
     return dashboard
 
 
+@pytest.fixture
+def empty_dashboard_page(authorized_page) -> DashboardPage:
+    authorized_page.goto("/app.html?scenario=empty")
+    dashboard = DashboardPage(authorized_page)
+    dashboard.assert_loaded()
+    return dashboard
+
+
 AUTH_STATE_DIR = Path(".auth")
 
 
