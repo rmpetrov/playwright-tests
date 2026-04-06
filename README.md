@@ -14,20 +14,20 @@ This repository is a practical UI and API validation project built with Playwrig
 
 ## What this project validates
 - Login and session workflow behavior, including protected dashboard access, logout, Remember Me persistence, validation, and keyboard submission
-- Dashboard behavior, including overview cards, transaction table presence, header consistency, column structure, and amount formatting
+- Dashboard behavior, including overview cards, populated and empty transaction states, row consistency, and amount formatting
 - API client behavior for user endpoints, including GET and POST flows, status handling, and schema validation with Pydantic
-- Negative and error-path handling, including 404 responses, 500 responses, and invalid API payloads
+- Negative and error-path handling, including 404 responses, 500 responses, malformed JSON, and validation errors
 
 ## Testing scope
 - UI tests run against a bundled local app by default at `http://127.0.0.1:8000`
-- The local app uses a minimal cookie-based auth/session flow and redirects unauthenticated users away from `/app.html`
+- The local app includes deterministic auth/session, empty-dashboard, and local API validation scenarios
 - API tests use mocked HTTP responses for deterministic execution
 - CI runs linting, API checks, and UI checks across Chromium, Firefox, and WebKit
 - Marker-based selection (`ui`, `api`, `auth`, `smoke`) and controlled retries keep runs practical and easy to target
 
 ## Why it matters
 - Deterministic local UI and mocked API flows keep runs repeatable and easier to troubleshoot
-- Published HTML reports, Allure results, and Playwright failure artifacts improve debugging
+- Reports, Allure results, and Playwright failure artifacts improve debugging
 - Page objects, fixtures, schemas, and supporting docs keep the suite maintainable and easier to extend
 - The project demonstrates regression-oriented checks that support release readiness rather than one-off demo automation
 
@@ -39,7 +39,7 @@ This repository is a practical UI and API validation project built with Playwrig
 
 ## CI and debugging visibility
 - API jobs publish HTML and Allure artifacts
-- UI jobs publish HTML reports, Playwright failure artifacts, and `local-app.log` for every browser job
+- UI jobs publish HTML reports, Playwright artifacts, and `local-app.log` for every browser job
 - UI jobs add a compact summary with the browser under test, local app readiness, and artifact names
 - GitHub Pages exposes the generated report site from successful CI runs
 - The workflow validates report output before deployment to keep report publishing reliable
@@ -86,6 +86,8 @@ playwright-tests/
 ## Documentation and proof
 - [Execution modes and CI commands](docs/execution.md)
 - [Architecture](docs/architecture.md)
+- [Debugging guide](docs/debugging-guide.md)
+- [Local app test data](docs/test-data.md)
 - [Test strategy](docs/test_strategy.md)
 - [Flaky test policy](docs/flaky_policy.md)
 - [Workflow runs](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml)
