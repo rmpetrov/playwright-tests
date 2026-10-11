@@ -19,12 +19,15 @@ screenshots/
 
 # Local env
 .env
+.env.*
+!.env.example
 
 # Reports
 report.html
 
 # Allure (generated artifacts)
 allure-results/
+allure-results-*/
 allure-report/
 
 # Playwright auth state
@@ -33,3 +36,9 @@ storage_state*.json
 
 .DS_Store
 **/.DS_Store
+
+# Local tooling and runtime output
+.ruff_cache/
+.claude/settings.local.json
+local-app.log
+output/

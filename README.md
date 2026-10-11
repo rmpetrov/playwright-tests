@@ -1,93 +1,92 @@
-# Playwright + pytest quality validation project
+# Playwright + pytest UI and API validation
 
-![Tests](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml/badge.svg)
+[![Tests](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml/badge.svg)](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml)
 
-This repository is a practical UI and API validation project built with Playwright and pytest. It is designed to show how automated checks can support software quality, regression confidence, reproducible execution, and failure troubleshooting, not just browser automation in isolation.
+A Python 3.13 test project with a bundled deterministic HTTP application, Playwright page
+objects, and requests clients validated with Pydantic. UI tests exercise real browser/session
+behavior; API tests combine mocked user responses with real HTTP checks of the local app.
+No external application or API service is required.
 
-## Quick links
-- CI workflow: [`.github/workflows/tests.yml`](.github/workflows/tests.yml)
-- Published reports: https://rmpetrov.github.io/playwright-tests/
+| Validation | Implemented checks |
+|---|---|
+| Login and sessions | Required fields, keyboard submission, protected routes, logout, Remember Me across browser restart |
+| Dashboard | Overview cards, transaction headers/values/date and amount formats, populated and empty states |
+| Mocked users API | GET/POST, 404, HTTP 500, missing fields and invalid response types |
+| Local feedback API | 201 success, missing/empty/invalid fields, non-object and malformed JSON, unsupported content type |
 
-## Scope
-- UI and API validation in one repository, focused on repeatable checks for critical workflows and response handling
-- Quality-focused automation with a bundled local app for realistic auth/session checks
+**CI:** Ruff lint/format, API tests, and independent Chromium/Firefox/WebKit jobs.
+Each browser job retains failure diagnostics and reports. See [workflow runs](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml)
+and [published HTML reports](https://rmpetrov.github.io/playwright-tests/).
+Published reports represent the latest successful `main` run; failed runs and PR evidence
+remain in Actions artifacts.
 
-## What this project validates
-- Login and session workflow behavior, including protected dashboard access, logout, Remember Me persistence, validation, and keyboard submission
-- Dashboard behavior, including overview cards, populated and empty transaction states, row consistency, and amount formatting
-- API client behavior for user endpoints, including GET and POST flows, status handling, and schema validation with Pydantic
-- Negative and error-path handling, including 404 responses, 500 responses, malformed JSON, and validation errors
+## Run locally
 
-## Testing scope
-- UI tests run against a bundled local app by default at `http://127.0.0.1:8000`
-- The local app includes deterministic auth/session, empty-dashboard, and local API validation scenarios
-- API tests use mocked HTTP responses for deterministic execution
-- CI runs linting, API checks, and UI checks across Chromium, Firefox, and WebKit
-- Marker-based selection (`ui`, `api`, `auth`, `smoke`) and controlled retries keep runs practical and easy to target
-
-## Why it matters
-- Deterministic local UI and mocked API flows keep runs repeatable and easier to troubleshoot
-- Reports, Allure results, and Playwright failure artifacts improve debugging
-- Page objects, fixtures, schemas, and supporting docs keep the suite maintainable and easier to extend
-- The project demonstrates regression-oriented checks that support release readiness rather than one-off demo automation
-
-## Tools used
-- Python, pytest, Playwright
-- Requests, Responses, Pydantic
-- Ruff, Allure, pytest-html
-- GitHub Actions, GitHub Pages
-
-## CI and debugging visibility
-- API jobs publish HTML and Allure artifacts
-- UI jobs publish HTML reports, Playwright artifacts, and `local-app.log` for every browser job
-- UI jobs add a compact summary with the browser under test, local app readiness, and artifact names
-- GitHub Pages exposes the generated report site from successful CI runs
-- The workflow validates report output before deployment to keep report publishing reliable
-
-## How to run
 ```bash
-python -m venv .venv
+python3.13 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements-api.txt -r requirements-ui.txt
-playwright install
-make serve
+python -m pip install -r requirements-api.txt -r requirements-ui.txt -r requirements-dev.txt
+python -m playwright install
+export PW_USERNAME=test_user PW_PASSWORD=test_password
+LOCAL_APP_HOST=127.0.0.1 LOCAL_APP_PORT=8000 make serve
 ```
 
-In another terminal:
+In another terminal, activate the same environment:
 
 ```bash
+source .venv/bin/activate
+export PW_BASE_URL=http://127.0.0.1:8000
+export PW_USERNAME=test_user PW_PASSWORD=test_password
+make lint
 make test-api
 make test-ui-chromium
-```
-
-Useful alternatives:
-
-```bash
-make lint
 make test-ui-all
-make report-allure
-pytest -v tests -m auth --browser=chromium
-pytest -v -m smoke
 ```
 
-Optional alternate target: `PW_BASE_URL=https://demo.applitools.com/ make test-ui-chromium`
+API-only setup needs just `requirements-api.txt`; `make test-api` starts its own isolated
+local server. The exports above target the bundled app even if an existing `.env` sets
+`PW_BASE_URL` to another site: exported variables take precedence. Without the exports,
+pytest loads that `.env` value and tests the other site. The server reads exported variables,
+not `.env`; use matching credentials in both terminals. The external Applitools demo is
+not a compatible full-suite target.
+On Linux, install browser OS dependencies with `python -m playwright install --with-deps`.
+See [execution modes](docs/execution.md) for profiles, markers, and overrides.
 
-## Project structure
+## Deterministic data and failure investigation
+
+The dashboard has three fixed transactions; `?scenario=empty` renders the empty state.
+User API tests intercept HTTP through `responses`; feedback tests call a fixture-owned
+server on a free loopback port. Neither suite depends on third-party service availability.
+
+`make test-ui-chromium` produces `html-report/ui/index.html` and `allure-results-ui/`.
+Plugin-managed pages retain traces, videos, and screenshots in `test-results/` on failure.
+For an empty-state failure, check the URL and rendered rows in the trace, then rerun with
+`EXTRA_PYTEST_ARGS=""` to disable retries. Browser-restart tests use manual persistent
+contexts and currently lack automatic plugin artifacts. See the [debugging guide](docs/debugging-guide.md).
+
+## Structure and documentation
+
 ```text
-playwright-tests/
-  local_app/             # Deterministic local UI app used for repeatable runs
-  pages/                 # Playwright page objects
-  tests/                 # UI tests and fixtures
-  api_tests/             # API clients, schemas, and tests
-  docs/                  # Architecture, strategy, execution, flaky policy
-  .github/workflows/     # CI pipeline and report publishing
+local_app/        # Bundled HTTP app, session cookies, dashboard, feedback endpoint
+pages/            # Login and dashboard page objects with Allure steps
+tests/            # UI tests and browser/auth fixtures
+api_tests/        # HTTP clients, Pydantic schemas, mocks and local integration tests
+docs/             # Execution, architecture, strategy, data and debugging
+.github/workflows/ # Independent quality checks and gated report publishing
 ```
 
-## Documentation and proof
-- [Execution modes and CI commands](docs/execution.md)
 - [Architecture](docs/architecture.md)
+- [Execution and dependency management](docs/execution.md)
 - [Debugging guide](docs/debugging-guide.md)
 - [Local app test data](docs/test-data.md)
 - [Test strategy](docs/test_strategy.md)
 - [Flaky test policy](docs/flaky_policy.md)
-- [Workflow runs](https://github.com/rmpetrov/playwright-tests/actions/workflows/tests.yml)
+
+Test dependencies are pinned in compiled lockfiles; UI runs require both API and UI files.
+Ruff is shared across CI and pre-commit. Allure results are collected by pytest; viewing them
+requires a separately installed Allure CLI. The local app is a test fixture; performance,
+security, accessibility, and visual regression audits are outside this suite's scope.
+
+For report deployment, set **Settings → Pages → Build and deployment → Source** to
+**GitHub Actions**. The workflow uses official Pages deployment actions and the `github-pages`
+environment; it does not push report commits to a publishing branch.

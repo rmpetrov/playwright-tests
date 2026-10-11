@@ -1,4 +1,3 @@
-VENV_BIN ?= .venv/bin
 PYTHON ?= python3
 PYTEST ?= pytest
 RUFF ?= ruff
@@ -17,7 +16,7 @@ lint:
 	$(RUFF) format --check .
 
 test-api:
-	$(PYTEST) -v api_tests -m "not quarantine"
+	$(PYTEST) -v api_tests -m "not quarantine" --html=html-report/api/index.html --self-contained-html --alluredir=allure-results-api
 
 test-ui:
 	ENV=ci $(PYTEST) -v tests -m "not quarantine" --browser=$(BROWSER) --tracing=retain-on-failure --video=retain-on-failure --screenshot=only-on-failure --html=html-report/ui/index.html --self-contained-html --alluredir=allure-results-ui $(EXTRA_PYTEST_ARGS)

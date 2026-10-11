@@ -37,7 +37,9 @@ INDEX_HTML = """\
 <body>
     <h1>Test Reports</h1>
     <ul>
-        <li><a href="./ui/">UI HTML report</a></li>
+        <li><a href="./ui/chromium/">UI HTML report — Chromium</a></li>
+        <li><a href="./ui/firefox/">UI HTML report — Firefox</a></li>
+        <li><a href="./ui/webkit/">UI HTML report — WebKit</a></li>
         <li><a href="./api/">API HTML report</a></li>
     </ul>
 </body>

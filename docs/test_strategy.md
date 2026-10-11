@@ -34,8 +34,8 @@ Out of scope (for this portfolio version):
 - Error handling for missing or invalid resources
 
 ## Data Strategy
-- UI tests use the demo site credentials from environment config
-- API tests use mocked responses with deterministic data
+- UI tests use the bundled local app and configured demonstration credentials
+- User API tests use mocked responses; feedback integration tests call an isolated local HTTP app
 - Shared config is centralized in `config.py`
 
 ## Environments
@@ -44,8 +44,9 @@ Out of scope (for this portfolio version):
 
 ## Reliability Practices
 - Global Playwright timeout applied via autouse fixture
-- Auth storage state reuse to reduce flaky logins
-- Console logs, screenshots, video, and trace on failure
+- Auth storage state rebuilt per browser/session and reused in isolated contexts
+- Failure attachments and Playwright artifacts for plugin-managed pages; manual browser-restart
+  contexts currently lack automatic artifacts
 - Controlled UI retries in CI to mitigate transient browser issues
 - Flaky handling governed by `docs/flaky_policy.md`
 
@@ -56,11 +57,11 @@ Out of scope (for this portfolio version):
 
 ## Quality Gates
 - Ruff lint and format checks
-- API tests must pass before UI tests
+- Lint, API, and all UI browser jobs must pass before main-branch reports are published
 - UI tests run on Chromium, Firefox, and WebKit
 - CI excludes `quarantine` tests from blocking runs
 
 ## Future Enhancements
-- Add integration tests against real APIs
+- Extend local HTTP integration coverage as new application behavior is added
 - Add data builders for more complex test setup
 - Add non-functional checks (performance/accessibility) as separate, non-blocking stages

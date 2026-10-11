@@ -26,6 +26,7 @@ packaging==26.0
     # via
     #   -c requirements-api.txt
     #   pytest
+    #   pytest-rerunfailures
 playwright==1.57.0
     # via
     #   -r requirements-ui.in
@@ -45,11 +46,14 @@ pytest==9.0.2
     #   -c requirements-api.txt
     #   pytest-base-url
     #   pytest-playwright
+    #   pytest-rerunfailures
 pytest-base-url==2.1.0
     # via
     #   -r requirements-ui.in
     #   pytest-playwright
 pytest-playwright==0.7.2
+    # via -r requirements-ui.in
+pytest-rerunfailures==16.7
     # via -r requirements-ui.in
 python-slugify==8.0.4
     # via pytest-playwright

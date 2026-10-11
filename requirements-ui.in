@@ -3,4 +3,4 @@
 playwright
 pytest-playwright
 pytest-base-url
-pytest-rerunfailures
+pytest-rerunfailures>=14,<17

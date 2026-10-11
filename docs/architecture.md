@@ -24,6 +24,7 @@ flowchart LR
 ## Folder Map
 ```text
 playwright-tests/
+  local_app/        # Deterministic HTTP application
   pages/            # UI page objects
   tests/            # UI test suite
   api_tests/        # API test suite
@@ -40,9 +41,10 @@ playwright-tests/
 - `config.py`: Single source of truth for environment settings
 
 ## Execution Model
-- UI tests use a shared auth storage state and consistent timeouts
-- API tests are deterministic and do not require external services
-- CI runs API tests first, then UI tests in a 3-browser matrix
+- UI tests rebuild per-browser auth state once per session and use isolated contexts per test
+- Plugin-managed contexts retain failure artifacts; manual persistent contexts have limited diagnostics
+- API tests combine mocked user responses and real HTTP feedback checks on an isolated local server
+- Lint, API, and the three UI browser jobs run independently; publishing waits for all to pass
 
 ## Design Rationale
 - POM keeps UI interactions reusable and readable

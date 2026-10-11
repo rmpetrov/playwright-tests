@@ -17,6 +17,10 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 def _getenv(name: str, default: str) -> str:
     value = os.getenv(name)
