@@ -8,13 +8,10 @@ from pathlib import Path
 
 import allure
 import pytest
-from dotenv import load_dotenv
 
 from config import settings
 from pages.dashboard_page import DashboardPage
 from pages.login_page import LoginPage
-
-load_dotenv()
 
 
 def _get_ui_page(request):
@@ -22,7 +19,7 @@ def _get_ui_page(request):
     try:
         if "page" in request.fixturenames:
             return request.getfixturevalue("page")
-        if any(name in request.fixturenames for name in ("authorized_page", "dashboard_page")):
+        if "authorized_page" in request.fixturenames:
             return request.getfixturevalue("authorized_page")
     except Exception:
         return None
@@ -76,9 +73,10 @@ def capture_console_logs(request):
 @pytest.fixture(autouse=True)
 def allure_attach_on_failure(request):
     """Attach screenshot, page HTML, and URL to Allure on UI test failure."""
+    # Resolve before yielding so this fixture tears down before the page/context closes.
+    page = _get_ui_page(request)
     yield
 
-    page = _get_ui_page(request)
     if page is None:
         return
 
@@ -122,15 +120,11 @@ def allure_attach_on_failure(request):
 
 
 @pytest.fixture
-def authorized_page(browser, auth_storage_state_path):
+def authorized_page(new_context, auth_storage_state_path):
     """Create an authenticated page without changing the default unauthenticated `page`."""
-    context = browser.new_context(
-        base_url=settings.base_url,
-        storage_state=auth_storage_state_path,
-    )
+    context = new_context(storage_state=auth_storage_state_path)
     page = context.new_page()
     yield page
-    context.close()
 
 
 @pytest.fixture
@@ -171,26 +165,36 @@ def auth_storage_state_path(playwright, browser_name: str) -> str:
         headless=settings.headless,
         slow_mo=settings.slow_mo_ms,
     )
-    context = browser.new_context(base_url=settings.base_url)
-    page = context.new_page()
-    page.set_default_timeout(settings.timeout_ms)
+    try:
+        context = browser.new_context(base_url=settings.base_url)
+        page = context.new_page()
+        page.set_default_timeout(settings.timeout_ms)
 
-    login_page = LoginPage(page)
-    login_page.open()
-    login_page.login(settings.username, settings.password, remember=True)
-    DashboardPage(page).assert_loaded()
-
-    context.storage_state(path=str(state_file))
-
-    context.close()
-    browser.close()
+        login_page = LoginPage(page)
+        login_page.open()
+        login_page.login(settings.username, settings.password, remember=True)
+        DashboardPage(page).assert_loaded()
+        context.storage_state(path=str(state_file))
+    finally:
+        browser.close()
 
     return str(state_file)
 
 
-@pytest.fixture
-def browser_context_args():
+@pytest.fixture(scope="session")
+def browser_context_args(browser_context_args):
     """Keep the default Playwright `page` fixture unauthenticated."""
     return {
+        **browser_context_args,
         "base_url": settings.base_url,
+    }
+
+
+@pytest.fixture(scope="session")
+def browser_type_launch_args(browser_type_launch_args):
+    """Apply profile defaults while preserving explicit Playwright CLI options."""
+    return {
+        "headless": settings.headless,
+        "slow_mo": settings.slow_mo_ms,
+        **browser_type_launch_args,
     }

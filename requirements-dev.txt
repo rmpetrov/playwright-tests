@@ -1,4 +1,4 @@
-# Development tools (not pinned - install latest)
+# Compiler and hook runner; Ruff matches CI and pre-commit.
 pip-tools
 pre-commit
-ruff
+ruff==0.14.13
